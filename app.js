@@ -770,7 +770,7 @@ saveIncidentBtn.addEventListener('click', async () => {
 
         incidentModal.classList.add('hidden-modal');
 
-        if (currentModalMode === 'incidencia' && (classification === 'Heridos' || classification === 'Fallecidos' || classification === 'Privados de la libertad' || classification === 'Enfrentamiento')) {
+        if (currentModalMode === 'incidencia' && (classification === 'Heridos' || classification === 'Fallecidos' || classification === 'Privados de la libertad' || classification === 'Enfrentamientos (PNP y ciudadanía / grupos ciudadanos contrarios)' || classification === 'Uso desmedido de la fuerza')) {
             openWaModal(activeSession, classification, qty, desc, time);
         }
 

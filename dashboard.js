@@ -268,13 +268,15 @@ function renderDashboard() {
             inc.clasificacion === 'Heridos' || 
             inc.clasificacion === 'Fallecidos' || 
             inc.clasificacion === 'Privados de la libertad' || 
-            inc.clasificacion === 'Enfrentamiento'
+            inc.clasificacion === 'Enfrentamientos (PNP y ciudadanía / grupos ciudadanos contrarios)' ||
+            inc.clasificacion === 'Uso desmedido de la fuerza'
         );
         const bCritical = (b.incidencias_array || []).some(inc => 
             inc.clasificacion === 'Heridos' || 
             inc.clasificacion === 'Fallecidos' || 
             inc.clasificacion === 'Privados de la libertad' || 
-            inc.clasificacion === 'Enfrentamiento'
+            inc.clasificacion === 'Enfrentamientos (PNP y ciudadanía / grupos ciudadanos contrarios)' ||
+            inc.clasificacion === 'Uso desmedido de la fuerza'
         );
         
         if (aCritical && !bCritical) return -1;
