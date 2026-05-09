@@ -218,7 +218,7 @@ function updateOtherMarker(sid, s) {
         iconAnchor: [20, 20]
     }) : L.divIcon({
         html: '🔵',
-        className: 'waze-marker', // Podemos definir esto en CSS o usar Leaflet default
+        className: 'waze-marker', 
         iconSize: [25, 25],
         iconAnchor: [12, 12]
     });
@@ -228,7 +228,11 @@ function updateOtherMarker(sid, s) {
         otherMarkers[sid].setIcon(icon);
     } else {
         otherMarkers[sid] = L.marker(latlng, { icon: icon }).addTo(minimap);
-        otherMarkers[sid].bindTooltip(s.name + " (" + s.office + ")", { direction: 'top' });
+        otherMarkers[sid].bindTooltip(s.name + " (" + s.office + ")", { 
+            permanent: true, 
+            direction: 'top',
+            className: 'waze-tooltip'
+        });
     }
 }
 

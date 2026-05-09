@@ -28,8 +28,11 @@
                 <img src="logo.png" alt="Logo" class="header-logo">
                 <span>TABLERO DE SUPERVISIÓN</span>
             </div>
-            <div style="display:flex; gap:10px;">
+            <div style="display:flex; gap:10px; align-items:center;">
                 <input type="date" id="filter-date" style="padding:5px; border-radius:5px; border:none;">
+                <select id="filter-protest" style="padding:5px; border-radius:5px; border:none; max-width:200px;">
+                    <option value="all">Todas las protestas</option>
+                </select>
                 <button id="refresh-btn" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">Actualizar 🔄</button>
                 <button id="timeline-btn" style="background:#34495e; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">⏱️ Línea Tiempo</button>
                 <button id="sync-gsheets-btn" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">🔄 Sincronizar BI</button>
