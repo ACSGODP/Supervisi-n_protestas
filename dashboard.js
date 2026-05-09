@@ -1,3 +1,5 @@
+import { app, database, ref, onValue, get } from './firebase-config.js';
+
 // Configuración
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbz9GbqHfoAQarF5pv4da2jJDcSSTz7suco2O5SyaZ8X_4sJOTVbYZhiTrj0X501uECW/exec";
 
@@ -17,6 +19,8 @@ const statFallecidos = document.getElementById('stat-fallecidos');
 const statDetenidos = document.getElementById('stat-detenidos');
 
 let allData = [];
+let map;
+let activeMarkers = {};
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,7 +29,119 @@ document.addEventListener('DOMContentLoaded', () => {
     filterDate.value = today;
 
     fetchData();
+    initMap();
+    listenToFirebaseGlobal();
 });
+
+function initMap() {
+    map = L.map('map-dashboard').setView([-12.0464, -77.0428], 5); // Centro de Perú por defecto
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+}
+
+function listenToFirebaseGlobal() {
+    const sessionsRef = ref(database, 'sessions');
+    onValue(sessionsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            updateLiveMap(data);
+            updateLiveFeed(data);
+        }
+    });
+}
+
+function updateLiveMap(sessionsData) {
+    if (!map) return;
+    
+    // Limpiar marcadores viejos
+    for (let id in activeMarkers) {
+        map.removeLayer(activeMarkers[id]);
+    }
+    activeMarkers = {};
+    
+    let bounds = [];
+
+    for (let sessionId in sessionsData) {
+        const session = sessionsData[sessionId];
+        if (session.status === 'active' && session.currentLocation) {
+            const { lat, lng } = session.currentLocation;
+            const marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(`<b>${session.supervisor}</b><br>${session.location}`);
+            activeMarkers[sessionId] = marker;
+            bounds.push([lat, lng]);
+        }
+    }
+    
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+}
+
+window.openFullscreenImage = function(url) {
+    const imageModal = document.getElementById('image-modal');
+    const fullImage = document.getElementById('full-image');
+    if(!imageModal) return;
+    fullImage.src = url;
+    imageModal.classList.remove('hidden-modal');
+    imageModal.style.display = 'flex';
+};
+
+const closeImageModalBtn = document.getElementById('close-image-modal');
+if (closeImageModalBtn) {
+    closeImageModalBtn.addEventListener('click', () => {
+        const imageModal = document.getElementById('image-modal');
+        if(imageModal) {
+            imageModal.classList.add('hidden-modal');
+            imageModal.style.display = 'none';
+        }
+    });
+}
+
+function updateLiveFeed(sessionsData) {
+    const globalFeed = document.getElementById('global-feed');
+    if (!globalFeed) return;
+    
+    let allIncidents = [];
+    
+    for (let sessionId in sessionsData) {
+        const session = sessionsData[sessionId];
+        if (session.incidents) {
+            for (let incId in session.incidents) {
+                const inc = session.incidents[incId];
+                allIncidents.push({
+                    ...inc,
+                    sessionId: sessionId,
+                    sessionSupervisor: session.supervisor,
+                    sessionLocation: session.location
+                });
+            }
+        }
+    }
+    
+    allIncidents.sort((a, b) => b.timestamp - a.timestamp); // Más recientes primero
+    
+    if (allIncidents.length === 0) {
+        globalFeed.innerHTML = '<p style="text-align: center; color: #666; margin-top: 20px;">Esperando actualizaciones en vivo...</p>';
+        return;
+    }
+    
+    globalFeed.innerHTML = allIncidents.map(inc => {
+        const isUpdate = inc.tipoRegistro === 'Actualización';
+        return `
+            <div class="chat-bubble chat-other">
+                <div class="chat-author">${inc.sessionSupervisor || 'Usuario'} - ${inc.sessionLocation || 'Ubicación'}</div>
+                <div class="timeline-desc">
+                    ${inc.clasificacion && inc.clasificacion !== 'Reporte de Situación' ? `<strong>${inc.clasificacion}</strong>${inc.cantidad ? ` (Cant: ${inc.cantidad})` : ''} - ` : ''}
+                    ${inc.description}
+                </div>
+                ${inc.imageUrl ? `<img src="${inc.imageUrl}" class="chat-img" onclick="openFullscreenImage('${inc.imageUrl}')">` : ''}
+                ${inc.audioUrl ? `<audio controls class="chat-audio" src="${inc.audioUrl}"></audio>` : ''}
+                <div class="chat-time">${inc.time} ${isUpdate ? '🔄' : '🚩'}</div>
+            </div>
+        `;
+    }).join('');
+}
 
 refreshBtn.addEventListener('click', fetchData);
 filterDate.addEventListener('change', renderDashboard);

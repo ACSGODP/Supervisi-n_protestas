@@ -15,6 +15,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 
 <body>
@@ -321,6 +325,7 @@
                 <p><strong>Punto:</strong> <span id="display-location"></span></p>
                 <p><strong>Inicio:</strong> <span id="display-start"></span></p>
                 <p><strong>GPS Inicio:</strong> <span id="display-start-geo">Pendiente...</span></p>
+                <div id="mini-map" style="height: 200px; width: 100%; border-radius: 8px; margin-top: 10px; z-index: 1;"></div>
             </div>
             <div class="timer" id="timer">00:00:00</div>
 
@@ -397,6 +402,14 @@
                 <div id="incident-photo-name" style="text-align: center; font-size: 0.8rem; color: #666; margin-top: 5px;">Sin archivo
                 </div>
             </div>
+            <!-- Controles de Audio -->
+            <div class="form-group audio-controls" style="text-align: center; background: #f1f5f9; padding: 10px; border-radius: 8px;">
+                <button id="record-audio-btn" class="btn-secondary" style="background-color: #e74c3c; width: 100%; margin-bottom: 5px;">🎤 Grabar Nota de Voz</button>
+                <button id="stop-audio-btn" class="btn-secondary hidden" style="background-color: #34495e; width: 100%; margin-bottom: 5px;">⏹️ Detener Grabación</button>
+                <div id="audio-timer" class="hidden" style="font-weight: bold; color: #e74c3c;">00:00</div>
+                <audio id="audio-preview" controls class="hidden" style="width: 100%; margin-top: 5px;"></audio>
+                <button id="discard-audio-btn" class="btn-secondary hidden" style="background-color: #95a5a6; width: 100%; margin-top: 5px; font-size: 0.8rem;">🗑️ Descartar Audio</button>
+            </div>
             <div class="modal-actions" style="display: flex; gap: 10px; justify-content: space-between;">
                 <button id="cancel-incident-btn" class="btn-secondary"
                     style="background-color: #95a5a6;">Cancelar</button>
@@ -423,9 +436,15 @@
             </div>
         </div>
     </div>
-    <script src="app.js"></script>
+    <!-- Modal Visor de Imagen Completa -->
+    <div id="image-modal" class="modal hidden-modal" style="z-index: 2000; background: rgba(0,0,0,0.9);">
+        <span id="close-image-modal" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img class="modal-content" id="full-image" style="max-width: 90%; max-height: 90vh; border-radius: 0; background: transparent; padding: 0;">
+    </div>
+
+    <script type="module" src="app.js"></script>
     <div style="text-align: center; font-size: 0.8rem; color: #666; padding: 10px;">
-        v2.1 - Unificado
+        v3.0 - Híbrido Firebase
     </div>
 </body>
 

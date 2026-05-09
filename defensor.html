@@ -7,6 +7,10 @@
     <title>Tablero - Defensor del Pueblo</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <style>
         /* Estilos específicos para el Dashboard */
         .dashboard-container {
@@ -145,6 +149,11 @@
             </div>
         </section>
 
+        <!-- Mapa en Vivo -->
+        <section id="map-section" style="margin-bottom: 2rem;">
+            <div id="map-dashboard" style="height: 450px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; z-index: 1;"></div>
+        </section>
+
         <!-- Estadísticas -->
         <section id="stats-section" class="stats-grid">
             <div class="stat-card">
@@ -178,14 +187,30 @@
         </section>
 
         <!-- Lista de Reportes -->
-        <section id="reports-section">
-            <h2 id="list-title">Reportes del Día</h2>
-            <div id="loading" style="text-align: center; padding: 2rem;">
-                Cargando datos... ⏳
+        <section id="reports-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h2 id="list-title">Reportes del Día</h2>
+                <div id="loading" style="text-align: center; padding: 2rem;">
+                    Cargando datos... ⏳
+                </div>
+                <div id="reports-list" class="report-list link-container"></div>
             </div>
-            <div id="reports-list" class="report-list link-container"></div>
+            
+            <!-- Feed Global en Tiempo Real -->
+            <div>
+                <h2>Feed en Tiempo Real (Incidencias)</h2>
+                <div id="global-feed" class="timeline-container" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); max-height: 600px; overflow-y: auto;">
+                    <p style="text-align: center; color: #666; margin-top: 20px;">Esperando actualizaciones en vivo...</p>
+                </div>
+            </div>
         </section>
     </main>
+
+    <!-- Modal Visor de Imagen Completa -->
+    <div id="image-modal" class="modal hidden-modal" style="z-index: 2000; background: rgba(0,0,0,0.9); display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center;">
+        <span id="close-image-modal" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img class="modal-content" id="full-image" style="max-width: 90%; max-height: 90vh; border-radius: 0; background: transparent; padding: 0;">
+    </div>
 
     <!-- Modal Gestión de Listas -->
     <div id="lists-modal" class="modal hidden-modal"
@@ -219,7 +244,7 @@
         </div>
     </div>
 
-    <script src="dashboard.js"></script>
+    <script type="module" src="dashboard.js"></script>
 </body>
 
 </html>

@@ -1,3 +1,5 @@
+import { app, database, storage, ref, set, onValue, push, update, get, storageRef, uploadBytes, getDownloadURL } from './firebase-config.js';
+
 // Registro de Service Worker para PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -7,7 +9,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// CONFIGURACIÓN: Reemplaza esto con la URL que obtendrás de Google Apps Script
+// CONFIGURACI�"N: Reemplaza esto con la URL que obtendrás de Google Apps Script
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbz9GbqHfoAQarF5pv4da2jJDcSSTz7suco2O5SyaZ8X_4sJOTVbYZhiTrj0X501uECW/exec";
 const ADMIN_PASSWORD = "Defensoria2026";
 
@@ -18,6 +20,14 @@ let waContacts = [];
 let activeSession = null;
 let history = [];
 let timerInterval = null;
+let locationWatchId = null;
+
+// Variables de Audio
+let mediaRecorder;
+let audioChunks = [];
+let audioBlob = null;
+let audioTimerInterval = null;
+let audioSeconds = 0;
 
 // Elementos del DOM
 const selectionSection = document.getElementById('selection-section');
@@ -163,6 +173,8 @@ function hideAllSections() {
 }
 
 // Cambio de Interfaz
+let miniMap = null;
+
 function showActiveSession() {
     hideAllSections();
     activeSection.classList.remove('hidden');
@@ -174,10 +186,75 @@ function showActiveSession() {
     if (activeSession.startGeo) {
         displayStartGeo.textContent = `${activeSession.startGeo.lat.toFixed(5)}, ${activeSession.startGeo.lng.toFixed(5)}`;
     } else {
-        displayStartGeo.textContent = "No registrada";
+        displayStartGeo.textContent = 'No registrada';
+    }
+
+    // Inicializar mini-mapa
+    const miniMapEl = document.getElementById('mini-map');
+    if (miniMapEl && typeof L !== 'undefined') {
+        if (miniMap) {
+            miniMap.remove();
+            miniMap = null;
+        }
+        const center = activeSession.startGeo
+            ? [activeSession.startGeo.lat, activeSession.startGeo.lng]
+            : [-12.0464, -77.0428];
+        miniMap = L.map('mini-map', { zoomControl: true }).setView(center, 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '\u00a9 OpenStreetMap contributors'
+        }).addTo(miniMap);
+        if (activeSession.startGeo) {
+            L.marker(center).addTo(miniMap).bindPopup('Inicio de turno').openPopup();
+        }
     }
 
     startTimer();
+    startLocationTracking();
+    listenToFirebaseIncidents();
+}
+
+function startLocationTracking() {
+    if (!navigator.geolocation) return;
+    
+    locationWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            if (activeSession && activeSession.sessionId) {
+                set(ref(database, 'sessions/' + activeSession.sessionId + '/currentLocation'), {
+                    lat: lat,
+                    lng: lng,
+                    timestamp: Date.now()
+                });
+            }
+        },
+        (err) => console.log('Error Watch Geo:', err),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+}
+
+function stopLocationTracking() {
+    if (locationWatchId !== null) {
+        navigator.geolocation.clearWatch(locationWatchId);
+        locationWatchId = null;
+    }
+}
+
+function listenToFirebaseIncidents() {
+    if (!activeSession || !activeSession.sessionId) return;
+    const incidentsRef = ref(database, 'sessions/' + activeSession.sessionId + '/incidents');
+    onValue(incidentsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const incidentsArray = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            })).sort((a, b) => a.timestamp - b.timestamp);
+            activeSession.incidents = incidentsArray;
+            localStorage.setItem('dp_active_session', JSON.stringify(activeSession));
+            renderTimeline();
+        }
+    });
 }
 
 // Lógica del Cronómetro
@@ -236,7 +313,7 @@ const locationDatalist = document.getElementById('location-list');
 const locationOptions = {
     'Espacio de movilización': [
         "Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo",
-        "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"
+        "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "�"valo Grau", "�"valo Bolognesi"
     ],
     'Dependencia policial / Seguridad del Estado': [
         "Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres",
@@ -432,7 +509,7 @@ startForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- SINCRONIZACIÓN EN TIEMPO REAL (v3.0) ---
+// --- SINCRONIZACI�"N EN TIEMPO REAL (v3.0) ---
 
 async function syncWithCloud(action, data, extraPayload = {}) {
     if (!GOOGLE_SHEETS_URL) return;
@@ -503,14 +580,30 @@ async function syncWithCloud(action, data, extraPayload = {}) {
 
 // EN SUBMIT DE FORMULARIOS: Llamar a 'start'
 // Modificar saveAndShowActive para aceptar flag de 'isNew'
-function saveAndShowActive(isNew = false) {
+async function saveAndShowActive(isNew = false) {
     localStorage.setItem('dp_active_session', JSON.stringify(activeSession));
-    showActiveSession();
-
-    // Si es nuevo inicio, sincronizar
     if (isNew) {
+        // Guardar sesi\u00f3n en Firebase Realtime Database
+        try {
+            await set(ref(database, 'sessions/' + activeSession.sessionId), {
+                supervisor: activeSession.name,
+                office: activeSession.office,
+                type: activeSession.type,
+                shift: activeSession.shift || '',
+                protestName: activeSession.protestName || '',
+                category: activeSession.category,
+                location: activeSession.location,
+                startTime: activeSession.startTime,
+                startGeo: activeSession.startGeo || null,
+                status: 'active'
+            });
+            console.log('Sesi\u00f3n guardada en Firebase.');
+        } catch (e) {
+            console.error('Error guardando sesi\u00f3n en Firebase:', e);
+        }
         syncWithCloud('start', activeSession);
     }
+    showActiveSession();
 }
 
 // FINALIZAR
@@ -537,11 +630,23 @@ finishBtn.addEventListener('click', async () => {
     localStorage.setItem('dp_history', JSON.stringify(history));
     localStorage.removeItem('dp_active_session');
 
-    // SYNC FINISH
+    // Actualizar Firebase: marcar como finalizada
+    try {
+        await update(ref(database, 'sessions/' + entry.sessionId), {
+            status: 'finished',
+            endTime: endTime,
+            endGeo: geo || null
+        });
+    } catch (e) { console.error('Error finalizando en Firebase:', e); }
+
+    stopLocationTracking();
+
+    // SYNC FINISH con Google Sheets
     await syncWithCloud('finish', entry);
 
+    if (miniMap) { miniMap.remove(); miniMap = null; }
     activeSession = null;
-    finishBtn.textContent = "Finalizar Supervisión";
+    finishBtn.textContent = 'Finalizar Supervisi\u00f3n';
     finishBtn.disabled = false;
 
     showSelectionScreen();
@@ -597,7 +702,7 @@ function renderHistory() {
                         <span class="duration-tag">${durationH}h</span>
                     </p>
                     ${item.protestName ? `<p>Protesta: ${item.protestName}</p>` : ''}
-                    ${item.mediaFile ? `<p>📎 ${item.mediaFile}</p>` : ''}
+                    ${item.mediaFile ? `<p>�Y"Z ${item.mediaFile}</p>` : ''}
                 </div>
             </div>
         `;
@@ -630,7 +735,7 @@ exportBtn.addEventListener('click', () => {
     document.body.removeChild(link);
 });
 
-// --- LÓGICA DE INCIDENCIAS ---
+// --- L�"GICA DE INCIDENCIAS ---
 
 function generateSessionId() {
     return 'SUP-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -676,10 +781,11 @@ function openModal(mode) {
         incidentClassGroup.classList.add('hidden');
         incidentQtyGroup.classList.remove('hidden');
     } else {
-        modalTitle.textContent = "Nueva Incidencia";
+        modalTitle.textContent = 'Nueva Incidencia';
         incidentClassGroup.classList.remove('hidden');
         incidentQtyGroup.classList.add('hidden');
     }
+    if (typeof resetAudioUI === 'function') resetAudioUI();
 }
 
 addIncidentBtn.addEventListener('click', () => openModal('incidencia'));
@@ -742,75 +848,180 @@ saveIncidentBtn.addEventListener('click', async () => {
         }
 
         const newIncident = {
-            id: Date.now(),
+            timestamp: Date.now(),
             time: time,
-            tipoRegistro: currentModalMode === 'actualizacion' ? 'Actualización' : 'Incidencia',
+            tipoRegistro: currentModalMode === 'actualizacion' ? 'Actualizaci\u00f3n' : 'Incidencia',
             clasificacion: classification,
-            cantidad: qty,
+            cantidad: qty || '',
             description: desc,
-            fileName: fileData.name,
-            mediaData: fileData.base64,
-            mediaType: fileData.type,
-            lat: geo ? geo.lat : "",
-            lng: geo ? geo.lng : ""
+            author: activeSession.name,
+            fileName: fileData.name || '',
+            mediaType: fileData.type || '',
+            lat: geo ? geo.lat : '',
+            lng: geo ? geo.lng : ''
         };
 
-        activeSession.incidents.push(newIncident);
-        saveAndShowActive(); // Guarda en localStorage
+        // Subir imagen a Firebase Storage (si hay)
+        if (file) {
+            saveIncidentBtn.textContent = 'Subiendo imagen...';
+            const imgRef = storageRef(storage, `incidents/${activeSession.sessionId}/${newIncident.timestamp}_${file.name}`);
+            await uploadBytes(imgRef, file);
+            newIncident.imageUrl = await getDownloadURL(imgRef);
+        }
 
-        // SYNC INCIDENT
-        saveIncidentBtn.textContent = "Sincronizando...";
+        // Subir audio a Firebase Storage (si hay)
+        if (typeof audioBlob !== 'undefined' && audioBlob) {
+            saveIncidentBtn.textContent = 'Subiendo audio...';
+            const ext = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
+            const audRef = storageRef(storage, `incidents/${activeSession.sessionId}/${newIncident.timestamp}_audio.${ext}`);
+            await uploadBytes(audRef, audioBlob);
+            newIncident.audioUrl = await getDownloadURL(audRef);
+        }
+
+        // Guardar en Firebase Realtime Database
+        saveIncidentBtn.textContent = 'Guardando...';
+        const incidentRef = push(ref(database, `sessions/${activeSession.sessionId}/incidents`));
+        await set(incidentRef, newIncident);
+        console.log('Incidencia guardada en Firebase.');
+
+        // Sincronizar con Google Sheets (en paralelo, no bloqueante)
         syncWithCloud('incident', activeSession, {
-            new_incident: newIncident,
+            new_incident: { ...newIncident, mediaData: fileData.base64 },
             all_incidents: activeSession.incidents
         });
 
-        // Renderizar Timeline
-        renderTimeline();
-
+        if (typeof resetAudioUI === 'function') resetAudioUI();
         incidentModal.classList.add('hidden-modal');
 
-        if (currentModalMode === 'incidencia' && (classification === 'Heridos' || classification === 'Fallecidos' || classification === 'Privados de la libertad' || classification === 'Enfrentamientos (PNP y ciudadanía / grupos ciudadanos contrarios)' || classification === 'Uso desmedido de la fuerza')) {
+        // Alerta WhatsApp para incidencias cr\u00edticas
+        if (currentModalMode === 'incidencia' && (
+            classification === 'Heridos' ||
+            classification === 'Fallecidos' ||
+            classification === 'Privados de la libertad' ||
+            classification === 'Enfrentamientos (PNP y ciudadan\u00eda / grupos ciudadanos contrarios)' ||
+            classification === 'Uso desmedido de la fuerza'
+        )) {
             openWaModal(activeSession, classification, qty, desc, time);
         }
 
     } catch (err) {
         console.error(err);
-        alert("Error al guardar registro: " + err.message);
+        alert('Error al guardar registro: ' + err.message);
     } finally {
-        saveIncidentBtn.textContent = "Guardar";
+        saveIncidentBtn.textContent = 'Guardar';
         saveIncidentBtn.disabled = false;
     }
 });
 
 function renderTimeline() {
-    if (!activeSession || !activeSession.incidents) {
-        timelineContainer.innerHTML = "";
+    if (!activeSession || !activeSession.incidents || activeSession.incidents.length === 0) {
+        timelineContainer.innerHTML = '<p style="text-align:center;color:#888;margin-top:20px;">Sin registros aun. Envia tu primera actualizacion.</p>';
         return;
     }
 
-    // Ordenar por hora (aunque ya deberían estar ordenados)
-    // Se asume inserción cronológica
-    timelineContainer.innerHTML = activeSession.incidents.map(inc => `
-        <div class="timeline-item" style="border-left-color: ${inc.tipoRegistro === 'Actualización' ? '#3498db' : '#f39c12'}">
-            <div class="timeline-time">${inc.time} <span style="font-size: 0.7em; color: ${inc.tipoRegistro === 'Actualización' ? '#3498db' : '#f39c12'}; font-weight: bold; margin-left: 5px;">[${inc.tipoRegistro.toUpperCase()}]</span></div>
-            <div class="timeline-desc">
-                ${inc.clasificacion && inc.clasificacion !== 'Reporte de Situación' ? `<strong>${inc.clasificacion}</strong>${inc.cantidad ? ` (Cant: ${inc.cantidad})` : ''} - ` : ''}
-                ${inc.description}
-            </div>
-            ${inc.fileName ? `<div class="timeline-photo">📎 ${inc.fileName}</div>` : ''}
-        </div>
-    `).join('');
+    timelineContainer.innerHTML = activeSession.incidents.map(inc => {
+        const isUpdate = inc.tipoRegistro === 'Actualizacion';
+        const clLabel = inc.clasificacion && inc.clasificacion !== 'Reporte de Situacion'
+            ? `<strong>${inc.clasificacion}</strong>${inc.cantidad ? ` (Cant: ${inc.cantidad})` : ''} &mdash; `
+            : '';
+        return `
+            <div class="chat-bubble chat-mine">
+                <div class="chat-author">${inc.author || activeSession.name}</div>
+                <div class="timeline-desc">${clLabel}${inc.description}</div>
+                ${inc.imageUrl ? `<img src="${inc.imageUrl}" class="chat-img" onclick="openFullscreenImage('${inc.imageUrl}')" alt="Foto">` : ''}
+                ${inc.audioUrl ? `<audio controls class="chat-audio" src="${inc.audioUrl}"></audio>` : ''}
+                <div class="chat-time">${inc.time} ${isUpdate ? 'Upd' : 'Inc'}</div>
+            </div>`;
+    }).join('');
+
+    timelineContainer.scrollTop = timelineContainer.scrollHeight;
 }
 
-// Hookear renderTimeline en showActiveSession
-const originalShowActiveSession = showActiveSession;
-showActiveSession = function () {
-    originalShowActiveSession();
-    renderTimeline();
+// --- Audio Recording ---
+const recordAudioBtn  = document.getElementById('record-audio-btn');
+const stopAudioBtn    = document.getElementById('stop-audio-btn');
+const audioTimerEl    = document.getElementById('audio-timer');
+const audioPreviewEl  = document.getElementById('audio-preview');
+const discardAudioBtn = document.getElementById('discard-audio-btn');
+
+function resetAudioUI() {
+    audioBlob    = null;
+    audioChunks  = [];
+    audioSeconds = 0;
+    if (audioTimerInterval) clearInterval(audioTimerInterval);
+    if (audioTimerEl)   { audioTimerEl.textContent = '00:00'; audioTimerEl.classList.add('hidden'); }
+    if (audioPreviewEl) { audioPreviewEl.classList.add('hidden'); audioPreviewEl.src = ''; }
+    if (discardAudioBtn) discardAudioBtn.classList.add('hidden');
+    if (recordAudioBtn)  recordAudioBtn.classList.remove('hidden');
+    if (stopAudioBtn)    stopAudioBtn.classList.add('hidden');
+}
+
+if (recordAudioBtn) {
+    recordAudioBtn.addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                audioPreviewEl.src = URL.createObjectURL(audioBlob);
+                audioPreviewEl.classList.remove('hidden');
+                discardAudioBtn.classList.remove('hidden');
+            };
+            audioChunks = [];
+            mediaRecorder.start();
+            recordAudioBtn.classList.add('hidden');
+            stopAudioBtn.classList.remove('hidden');
+            audioTimerEl.classList.remove('hidden');
+            audioSeconds = 0;
+            audioTimerInterval = setInterval(() => {
+                audioSeconds++;
+                const m = Math.floor(audioSeconds / 60).toString().padStart(2, '0');
+                const s = (audioSeconds % 60).toString().padStart(2, '0');
+                audioTimerEl.textContent = `${m}:${s}`;
+            }, 1000);
+        } catch (err) {
+            console.error(err);
+            alert('No se pudo acceder al microfono. Verifica los permisos del navegador.');
+        }
+    });
+}
+
+if (stopAudioBtn) {
+    stopAudioBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        }
+        clearInterval(audioTimerInterval);
+        stopAudioBtn.classList.add('hidden');
+        audioTimerEl.classList.add('hidden');
+    });
+}
+
+if (discardAudioBtn) discardAudioBtn.addEventListener('click', resetAudioUI);
+
+// --- Image Fullscreen Modal ---
+const imageModalEl = document.getElementById('image-modal');
+const fullImageEl  = document.getElementById('full-image');
+const closeImgBtn  = document.getElementById('close-image-modal');
+
+window.openFullscreenImage = function(url) {
+    if (!imageModalEl) return;
+    fullImageEl.src = url;
+    imageModalEl.classList.remove('hidden-modal');
+    imageModalEl.style.display = 'flex';
 };
 
-// --- VALIDACIÓN ESTRICTA DE LISTAS ---
+if (closeImgBtn) {
+    closeImgBtn.addEventListener('click', () => {
+        imageModalEl.classList.add('hidden-modal');
+        imageModalEl.style.display = 'none';
+    });
+}
+
+
+// --- VALIDACI�"N ESTRICTA DE LISTAS ---
 function enforceStrictDatalist(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -831,7 +1042,7 @@ function enforceStrictDatalist(inputId) {
             }
 
             if (!match) {
-                alert("⚠️ Por favor selecciona una opción válida de la lista.\nSi no aparece, solicítalo al administrador.");
+                alert("�s�️ Por favor selecciona una opción válida de la lista.\nSi no aparece, solicítalo al administrador.");
                 this.value = ""; // Limpiar campo
             }
         }
@@ -852,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
     enforceStrictDatalist('acp-office');    // OD/MOD (Provincias)
 });
 
-// --- LÓGICA DE DRAG & DROP ---
+// --- L�"GICA DE DRAG & DROP ---
 function setupDropzone(dropzoneId, inputId, contentId, previewId, nameId = null) {
     const dropzone = document.getElementById(dropzoneId);
     const input = document.getElementById(inputId);
@@ -904,14 +1115,14 @@ function setupDropzone(dropzoneId, inputId, contentId, previewId, nameId = null)
                 preview.src = e.target.result;
                 preview.style.display = 'block';
                 content.style.display = 'none';
-                if(nameDisplay) nameDisplay.textContent = "📄 " + file.name;
+                if(nameDisplay) nameDisplay.textContent = "�Y"" " + file.name;
             };
         } else {
             preview.style.display = 'none';
             content.style.display = 'flex';
-            content.querySelector('.dropzone-icon').textContent = '📄';
+            content.querySelector('.dropzone-icon').textContent = '�Y""';
             content.querySelector('.dropzone-text').textContent = file.name;
-            if(nameDisplay) nameDisplay.textContent = "📄 " + file.name;
+            if(nameDisplay) nameDisplay.textContent = "�Y"" " + file.name;
         }
     }
     
@@ -919,7 +1130,7 @@ function setupDropzone(dropzoneId, inputId, contentId, previewId, nameId = null)
         preview.src = '';
         preview.style.display = 'none';
         content.style.display = 'flex';
-        content.querySelector('.dropzone-icon').textContent = '📷';
+        content.querySelector('.dropzone-icon').textContent = '�Y"�';
         content.querySelector('.dropzone-text').textContent = dropzoneId === 'dropzone-incident' ? 'Adjuntar foto' : 'Arrastra tu archivo aquí o haz clic para seleccionar';
         if(nameDisplay) nameDisplay.textContent = "Sin archivo";
     }
@@ -944,7 +1155,7 @@ let currentWaMsg = null;
 function openWaModal(session, classification, qty, desc, time) {
     if (!waContacts || waContacts.length === 0) {
         // Fallback genérico si no hay contactos
-        const waMsg = `*🚨 ALERTA: ${classification.toUpperCase()}*\n🚩 *Protesta:* ${session.protestName || 'No especificada'}\n📍 *Punto:* ${session.location}\n⏰ *Hora:* ${time}\n👥 *Cantidad:* ${qty}\n📝 *Detalle:* ${desc}`;
+        const waMsg = `*�Ys� ALERTA: ${classification.toUpperCase()}*\n�Ys� *Protesta:* ${session.protestName || 'No especificada'}\n�Y"� *Punto:* ${session.location}\n⏰ *Hora:* ${time}\n�Y'� *Cantidad:* ${qty}\n�Y"� *Detalle:* ${desc}`;
         if (confirm(`Incidencia crítica registrada.\n¿Deseas enviar este reporte urgente por WhatsApp?`)) {
             window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, '_blank');
         }
@@ -980,9 +1191,9 @@ if (waSendBtn) {
         const contact = waContacts[selectedIdx];
         const { session, classification, qty, desc, time } = currentWaMsg;
         
-        const qtyText = qty ? `\n👥 *Cantidad:* ${qty}` : '';
+        const qtyText = qty ? `\n�Y'� *Cantidad:* ${qty}` : '';
         
-        const waMsg = `Estimado(a) *${contact.nombre}*, ${contact.cargo} de la ${contact.oficina}.\nSe envía el siguiente reporte urgente sobre la protesta *${session.protestName || 'No especificada'}*:\n\n*🚨 ALERTA: ${classification.toUpperCase()}*\n📍 *Punto:* ${session.location}\n⏰ *Hora:* ${time}${qtyText}\n📝 *Detalle:* ${desc}`;
+        const waMsg = `Estimado(a) *${contact.nombre}*, ${contact.cargo} de la ${contact.oficina}.\nSe envía el siguiente reporte urgente sobre la protesta *${session.protestName || 'No especificada'}*:\n\n*�Ys� ALERTA: ${classification.toUpperCase()}*\n�Y"� *Punto:* ${session.location}\n⏰ *Hora:* ${time}${qtyText}\n�Y"� *Detalle:* ${desc}`;
         
         // Limpiar numero
         let phone = contact.numero.toString().replace(/\D/g,'');
@@ -991,3 +1202,4 @@ if (waSendBtn) {
         waModal.classList.add('hidden-modal');
     });
 }
+
