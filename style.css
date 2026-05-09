@@ -183,6 +183,7 @@ button:active {
 
 .hidden {
     display: none !important;
+    pointer-events: none !important;
 }
 
 /* Section Header & Back Link */
@@ -451,6 +452,39 @@ button:active {
 
 .hidden-modal {
     display: none !important;
+    pointer-events: none !important;
+}
+
+/* --- Corrección global de interacción táctil en mobile --- */
+button,
+a,
+.selection-card,
+[role="button"] {
+    touch-action: manipulation;   /* Evita el retraso de 300ms en mobile */
+    -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+    cursor: pointer;
+    position: relative;           /* Asegura z-index local correcto */
+    z-index: auto;
+}
+
+/* Asegura que secciones ocultas no bloqueen toques */
+#active-section.hidden,
+#acp-section.hidden,
+#start-section.hidden {
+    pointer-events: none !important;
+}
+
+/* Leaflet: evita que el contenedor del mapa bloquee toques cuando está oculto */
+#mini-map {
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* El header siempre por encima, clickeable */
+header {
+    position: relative;
+    z-index: 100;
 }
 
 .modal-content {

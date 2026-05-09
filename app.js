@@ -1,4 +1,13 @@
 ﻿
+// Guardas de seguridad: Firebase puede no estar disponible (file://, offline, etc.)
+const _fbDb      = (typeof _db      !== "undefined") ? _db      : null;
+const _fbStorage = (typeof _storage !== "undefined") ? _storage : null;
+
+// Wrapper seguro para evitar errores si Firebase no carga
+function fbRef(path) {
+    return _fbDb ? _fbDb.ref(path) : null;
+}
+
 // Registro de Service Worker para PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -222,7 +231,7 @@ function startLocationTracking() {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             if (activeSession && activeSession.sessionId) {
-                _db.ref('sessions/' + activeSession.sessionId + '/currentLocation').set({
+                const _locRef = fbRef('sessions/' + activeSession.sessionId + '/currentLocation'); if (_locRef) _locRef.set({
                     lat: lat,
                     lng: lng,
                     timestamp: Date.now()
@@ -243,8 +252,8 @@ function stopLocationTracking() {
 
 function listenToFirebaseIncidents() {
     if (!activeSession || !activeSession.sessionId) return;
-    const incidentsRef = _db.ref('sessions/' + activeSession.sessionId + '/incidents');
-    incidentsRef.on('value', (snapshot) => {
+    const incidentsRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
+if (incidentsRef) incidentsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
             const incidentsArray = Object.keys(data).map(key => ({
@@ -586,7 +595,8 @@ async function saveAndShowActive(isNew = false) {
     if (isNew) {
         // Guardar sesi\u00f3n en Firebase Realtime Database
         try {
-            await _db.ref('sessions/' + activeSession.sessionId).set({
+            const _sessionRef = fbRef('sessions/' + activeSession.sessionId);
+            if (_sessionRef) await _sessionRef.set({
                 supervisor: activeSession.name,
                 office: activeSession.office,
                 type: activeSession.type,
@@ -633,7 +643,8 @@ finishBtn.addEventListener('click', async () => {
 
     // Actualizar Firebase: marcar como finalizada
     try {
-        await _db.ref('sessions/' + entry.sessionId).update({
+        const _finRef = fbRef('sessions/' + entry.sessionId);
+        if (_finRef) await _finRef.update({
             status: 'finished',
             endTime: endTime,
             endGeo: geo || null
@@ -865,7 +876,7 @@ saveIncidentBtn.addEventListener('click', async () => {
         // Subir imagen a Firebase Storage (si hay)
         if (file) {
             saveIncidentBtn.textContent = 'Subiendo imagen...';
-            const imgRef = _storage.ref( `incidents/${activeSession.sessionId}/${newIncident.timestamp}_${file.name}`);
+            const imgRef = _fbStorage ? _fbStorage.ref( `incidents/${activeSession.sessionId}/${newIncident.timestamp}_${file.name}`);
             await imgRef.put(file);
             newIncident.imageUrl = await imgRef.getDownloadURL();
         }
@@ -874,14 +885,15 @@ saveIncidentBtn.addEventListener('click', async () => {
         if (typeof audioBlob !== 'undefined' && audioBlob) {
             saveIncidentBtn.textContent = 'Subiendo audio...';
             const ext = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
-            const audRef = _storage.ref( `incidents/${activeSession.sessionId}/${newIncident.timestamp}_audio.${ext}`);
+            const audRef = _fbStorage ? _fbStorage.ref( `incidents/${activeSession.sessionId}/${newIncident.timestamp}_audio.${ext}`);
             await audRef.put(audioBlob);
             newIncident.audioUrl = await audRef.getDownloadURL();
         }
 
         // Guardar en Firebase Realtime Database
         saveIncidentBtn.textContent = 'Guardando...';
-        await _db.ref('sessions/' + activeSession.sessionId + '/incidents').push(newIncident);
+        const _incListRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
+        if (_incListRef) await _incListRef.push(newIncident);
         console.log('Incidencia guardada en Firebase.');
 
         // Sincronizar con Google Sheets (en paralelo, no bloqueante)
