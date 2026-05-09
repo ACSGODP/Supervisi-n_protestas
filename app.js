@@ -482,10 +482,14 @@ saveIncidentBtn?.addEventListener('click', async () => {
         const sRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
         if (sRef) await sRef.push(inc);
 
-        // ETIQUETAR ALERTA EN EL DOCUMENTO DE SESIÓN
+        // === ETIQUETAR ALERTA EN FIREBASE ===
+        // Usamos .child() explícito para garantizar la escritura del campo
         const isCritical = ['Heridos', 'Fallecidos', 'Privados de la libertad'].includes(inc.clasificacion);
-        const sessionRef = fbRef('sessions/' + activeSession.sessionId);
-        if (sessionRef) await sessionRef.update({ alertaActiva: isCritical ? true : false });
+        const alertaRef = fbRef('sessions/' + activeSession.sessionId + '/alertaActiva');
+        if (alertaRef) {
+            await alertaRef.set(isCritical);
+            console.log('[ALERTA] alertaActiva escrita en Firebase:', isCritical);
+        }
 
         syncWithCloud('incident', activeSession, { incident: inc });
         

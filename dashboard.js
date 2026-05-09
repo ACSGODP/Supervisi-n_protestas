@@ -164,30 +164,42 @@ function updateStatsAndMap(sessions) {
     safeSetText('stat-detenidos', detenidos);
 }
 
+// Rastrear el estado de alerta anterior por ID para forzar setIcon solo cuando cambia
+const markerAlertState = {};
+
 function updateMarker(id, s, lat, lng) {
-    // REGLA ESTRICTA: solo alertaActiva===true activa el pin de emergencia
+    // Lee el campo booleano directamente del documento de la sesión
     const hasAlert = s.alertaActiva === true;
 
-    const customIcon = hasAlert
-        ? L.divIcon({
-            html: '🚨',
-            className: 'alert-marker',
-            iconSize: [30, 30],
-            iconAnchor: [15, 30]
-        })
-        : new L.Icon.Default(); // ESTADO NORMAL: pin azul estándar de Leaflet
+    // Ícono de emergencia: div rojo con emoji parpadeante
+    const alertaIcon = L.divIcon({
+        html: '<div class="pulse-alert">🚨</div>',
+        className: 'alert-marker-wrapper',
+        iconSize: [44, 44],
+        iconAnchor: [22, 44]
+    });
+    // Ícono normal: pin azul estándar de Leaflet
+    const normalIcon = new L.Icon.Default();
+    const iconToUse = hasAlert ? alertaIcon : normalIcon;
 
     if (markers[id]) {
         markers[id].setLatLng([lat, lng]);
-        markers[id].setIcon(customIcon);
+        // Actualizar icono SOLO si el estado de alerta cambió
+        if (markerAlertState[id] !== hasAlert) {
+            markers[id].setIcon(iconToUse);
+            markerAlertState[id] = hasAlert;
+        }
     } else {
-        markers[id] = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-        markers[id].bindTooltip(s.name + " (" + s.office + ")", {
+        // Primera vez: crear marcador con el ícono correcto
+        markers[id] = L.marker([lat, lng], { icon: iconToUse }).addTo(map);
+        markers[id].bindTooltip(s.name + ' (' + s.office + ')', {
             direction: 'top',
             className: 'waze-tooltip'
         });
+        markerAlertState[id] = hasAlert;
     }
 }
+
 
 let latestFilteredSessions = {}; // Para el acordeón
 
