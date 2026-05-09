@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -132,7 +134,10 @@
                 <p><strong>Oficina:</strong> <span id="display-office"></span></p>
                 <p><strong>Punto:</strong> <span id="display-location"></span></p>
                 <p><strong>Inicio:</strong> <span id="display-start"></span></p>
-                <p><strong>GPS Inicio:</strong> <span id="display-start-geo">Obteniendo...</span></p>
+                <p><strong>GPS Actual:</strong> <span id="display-start-geo">Obteniendo...</span></p>
+                
+                <!-- Mapa Visual del Comisionado -->
+                <div id="minimapa-comisionado" style="height: 180px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #ddd;"></div>
             </div>
             <div class="timer" id="timer">00:00:00</div>
 
@@ -144,15 +149,18 @@
                     📝 Enviar Actualización
                 </button>
             </div>
-            <div id="incidents-timeline" class="timeline-container"></div>
+            
+            <h4 style="margin: 15px 0 5px; color: #003366;">Feed en Tiempo Real (Compartido)</h4>
+            <div id="incidents-timeline" class="timeline-container" style="max-height: 400px; background: #f9f9f9;"></div>
+            
             <button id="finish-btn" class="btn-primary" style="background-color: #e74c3c; margin-top:20px;">Finalizar Supervisión</button>
         </section>
 
         <!-- Historial Local -->
         <section id="history-section" class="card">
             <div class="section-header">
-                <h2>Historial de Registros</h2>
-                <button id="export-btn" class="btn-secondary">Exportar</button>
+                <h2>Historial Local</h2>
+                <button id="export-btn" class="btn-secondary">Exportar CSV</button>
             </div>
             <div id="history-list"></div>
         </section>
@@ -170,7 +178,7 @@
                     <option value="Privados de la libertad">Privados de la libertad</option>
                     <option value="Enfrentamientos">Enfrentamientos</option>
                     <option value="Uso desmedido de la fuerza">Uso desmedido de la fuerza</option>
-                    <option value="Reporte de Situación">Reporte de Situación</option>
+                    <option value="Reporte de Situación" selected>Reporte de Situación</option>
                 </select>
             </div>
             <div class="form-group">
@@ -178,25 +186,27 @@
                 <input type="time" id="incident-time">
             </div>
             <div class="form-group">
-                <label>Cantidad (si aplica)</label>
+                <label>Cantidad (Personas involucradas)</label>
                 <input type="number" id="incident-qty" placeholder="0">
             </div>
             <div class="form-group">
-                <label>Descripción</label>
-                <textarea id="incident-desc" rows="3" placeholder="¿Qué está pasando?"></textarea>
+                <label>Descripción del suceso</label>
+                <textarea id="incident-desc" rows="3" placeholder="Describe brevemente lo ocurrido..."></textarea>
             </div>
             <div class="form-group">
-                <label>Foto (Opcional)</label>
-                <input type="file" id="incident-photo" accept="image/*">
+                <label>Foto Directa (Cámara)</label>
+                <!-- Forzar cámara con capture="environment" -->
+                <input type="file" id="incident-photo" accept="image/*" capture="environment">
             </div>
-            <div class="audio-section">
-                <button id="record-audio-btn" class="btn-secondary">🎤 Grabar Audio</button>
-                <button id="stop-audio-btn" class="btn-secondary hidden">🛑 Detener</button>
-                <audio id="audio-preview" controls class="hidden"></audio>
+            <div class="audio-section" style="background: #f0f4f8; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="font-size: 0.85em; margin-bottom: 5px; color: #555;">Grabadora de Voz:</p>
+                <button id="record-audio-btn" class="btn-secondary" style="width: auto; padding: 5px 15px;">🎤 Grabar</button>
+                <button id="stop-audio-btn" class="btn-secondary hidden" style="width: auto; padding: 5px 15px; background: #e74c3c; color: #fff;">🛑 Detener</button>
+                <audio id="audio-preview" controls class="hidden" style="margin-top: 10px; width: 100%;"></audio>
             </div>
             <div class="modal-buttons">
                 <button id="cancel-incident-btn" class="btn-secondary">Cancelar</button>
-                <button id="save-incident-btn" class="btn-primary">Guardar</button>
+                <button id="save-incident-btn" class="btn-primary">Enviar Reporte</button>
             </div>
         </div>
     </div>
@@ -204,18 +214,21 @@
     <!-- Modal WhatsApp -->
     <div id="wa-modal" class="modal hidden-modal">
         <div class="modal-content">
-            <h3>Enviar Alerta WhatsApp</h3>
+            <h3>📢 Alerta Crítica</h3>
+            <p>Se ha detectado una incidencia grave. ¿A quién deseas alertar por WhatsApp?</p>
             <div class="form-group">
-                <label>Selecciona Contacto</label>
+                <label>Contacto de Emergencia</label>
                 <select id="wa-contact-select"></select>
             </div>
             <div class="modal-buttons">
                 <button id="wa-cancel-btn" class="btn-secondary">Omitir</button>
-                <button id="wa-send-btn" class="btn-primary">Enviar</button>
+                <button id="wa-send-btn" class="btn-primary">Enviar WhatsApp</button>
             </div>
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>

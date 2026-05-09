@@ -13,13 +13,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-Díatabase-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
     <!-- Firebase Config -->
     <script src="firebase-config.js"></script>
     <style>
-        /* Estilos específicos para el Dashboard */
-        .dashboard-container {
+        /* Estilos específicos para el Díashboard */
+        .Díashboard-container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
@@ -115,27 +115,27 @@
         </div>
     </header>
 
-    <main class="dashboard-container">
+    <main class="Díashboard-container">
         <!-- Filtros -->
         <section class="filters">
             <div class="form-group" style="margin-bottom: 0;">
                 <label>📅 Fecha de Reporte</label>
-                <input type="date" id="filter-date">
+                <input type="Díate" id="filter-Díate">
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
-                <label>🗺️ Región / Ámbito</label>
+                <label>🗺️ Región / ÁÁmbito</label>
                 <select id="filter-region">
                     <option value="">Todo (Lima y Provincias)</option>
                     <option value="Sede Central">Lima (Sede Central)</option>
-                    <option value="Oficina Desconcentrada">Provincias (OD/MOD)</option>
+                    <option value="Oficina DesconcentraDía">Provincias (OD/MOD)</option>
                 </select>
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
                 <label>📢 Nombre de Protesta</label>
                 <select id="filter-protest">
-                    <option value="">Todas las protestas</option>
+                    <option value="">ToDías las protestas</option>
                     <!-- Se llena dinámicamente -->
                 </select>
             </div>
@@ -144,11 +144,11 @@
                 <button id="refresh-btn" class="btn-primary" style="height: 48px; flex: 1; min-width: 120px;">
                     Actualizar 🔄
                 </button>
-                <button id="manage-lists-btn" class="btn-secondary"
+                <button id="manage-lists-btn" class="btn-seconDíary"
                     style="height: 48px; flex: 1; background-color: #f39c12; border-color: #d35400; min-width: 120px;">
                     Listas 📋
                 </button>
-                <button id="generate-doc-btn" class="btn-secondary"
+                <button id="generate-doc-btn" class="btn-seconDíary"
                     style="height: 48px; flex: 1; background-color: #27ae60; border-color: #2ecc71; min-width: 150px;">
                     📄 Crear Reporte
                 </button>
@@ -157,7 +157,7 @@
 
         <!-- Mapa en Vivo -->
         <section id="map-section" style="margin-bottom: 2rem;">
-            <div id="map-dashboard" style="height: 450px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; z-index: 1;"></div>
+            <div id="map-Díashboard" style="height: 450px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; z-index: 1;"></div>
         </section>
 
         <!-- Estadísticas -->
@@ -171,11 +171,11 @@
                 <div class="value" id="stat-active" style="color: #3b82f6;">0</div>
             </div>
             <div class="stat-card">
-                <h3>Finalizadas</h3>
+                <h3>FinalizaDías</h3>
                 <div class="value" id="stat-finished" style="color: #64748b;">0</div>
             </div>
             <div class="stat-card">
-                <h3>Incidencias Reportadas</h3>
+                <h3>Incidencias ReportaDías</h3>
                 <div class="value" id="stat-incidents" style="color: #e67e22;">0</div>
             </div>
             <div class="stat-card">
@@ -197,7 +197,7 @@
             <div>
                 <h2 id="list-title">Reportes del Día</h2>
                 <div id="loading" style="text-align: center; padding: 2rem;">
-                    Cargando datos... ⏳
+                    Cargando Díatos... ⏳
                 </div>
                 <div id="reports-list" class="report-list link-container"></div>
             </div>
@@ -212,16 +212,16 @@
         </section>
     </main>
 
-    <!-- Modal Visor de Imagen Completa -->
-    <div id="image-modal" class="modal hidden-modal" style="z-index: 2000; background: rgba(0,0,0,0.9); display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center;">
-        <span id="close-image-modal" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
-        <img class="modal-content" id="full-image" style="max-width: 90%; max-height: 90vh; border-radius: 0; background: transparent; padding: 0;">
+    <!-- MoDíal Visor de Imagen Completa -->
+    <div id="image-moDíal" class="moDíal hidden-moDíal" style="z-index: 2000; background: rgba(0,0,0,0.9); display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center;">
+        <span id="close-image-moDíal" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img class="moDíal-content" id="full-image" style="max-width: 90%; max-height: 90vh; border-radius: 0; background: transparent; padding: 0;">
     </div>
 
-    <!-- Modal Gestión de Listas -->
-    <div id="lists-modal" class="modal hidden-modal"
+    <!-- MoDíal Gestión de Listas -->
+    <div id="lists-moDíal" class="moDíal hidden-moDíal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-        <div class="modal-content"
+        <div class="moDíal-content"
             style="background:white; padding:2rem; border-radius:12px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto;">
             <h3 style="margin-top:0;">Gestionar Listas Dinámicas</h3>
             <p style="font-size:0.9rem; color:#666;">Agrega nuevos ítems para que aparezcan en la App.</p>
@@ -231,7 +231,7 @@
                 <select id="list-type-select" style="width:100%; padding:10px; border:1px solid #666; border-radius:6px; margin-bottom: 10px;">
                     <option value="protesta">📢 Nombre de Protesta</option>
                     <option value="lugar">📍 Espacio de movilización</option>
-                    <option value="comisaria">🚓 Dependencia policial / Seguridad del Estado</option>
+                    <option value="comisaria">🚓 Dependencia policial / SeguriDíad del Estado</option>
                     <option value="salud">🏥 Establecimiento de salud</option>
                     <option value="video">📹 Videovigilancia</option>
                 </select>
@@ -245,12 +245,12 @@
             </div>
 
             <div style="margin-top:20px; text-align:right;">
-                <button id="close-lists-btn" class="btn-secondary" style="background:#95a5a6;">Cerrar</button>
+                <button id="close-lists-btn" class="btn-seconDíary" style="background:#95a5a6;">Cerrar</button>
             </div>
         </div>
     </div>
 
-    <script src="dashboard.js"></script>
+    <script src="Díashboard.js"></script>
 </body>
 
 </html>
