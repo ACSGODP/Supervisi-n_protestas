@@ -141,7 +141,7 @@ function startLocationTracking() {
     
     const geoOptions = {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 5000,
         maximumAge: 0
     };
 
@@ -159,7 +159,10 @@ function startLocationTracking() {
         const sRef = fbRef('sessions/' + activeSession.sessionId);
         if (sRef) sRef.update({ currentLat: lat, currentLng: lng, lastUpdate: Date.now() });
         
-    }, err => console.warn("GPS Error", err), geoOptions);
+    }, err => {
+        console.warn("GPS Update Error", err);
+        safeSetText('display-start-geo', 'Ubicación aprox. (señal débil)');
+    }, geoOptions);
 }
 
 function startTimer(start) {
@@ -247,12 +250,18 @@ startForm?.addEventListener('submit', e => {
 
 async function startSession(session) {
     try {
-        const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:10000}));
+        const pos = await new Promise((res,rej) => {
+            navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:5000});
+        });
         session.startLat = pos.coords.latitude;
         session.startLng = pos.coords.longitude;
         session.currentLat = session.startLat;
         session.currentLng = session.startLng;
-    } catch(e) { console.warn("GPS Omitido", e); }
+    } catch(e) { 
+        console.warn("GPS inicial omitido/no disponible", e);
+        session.startLat = -12.0464; // Lima default
+        session.startLng = -77.0428;
+    }
 
     activeSession = session;
     localStorage.setItem('dp_active_session', JSON.stringify(session));
@@ -282,22 +291,34 @@ function openIncidentModal(mode) {
 }
 
 saveIncidentBtn?.addEventListener('click', async () => {
-    const desc = document.getElementById('incident-desc').value;
-    if (!desc) return alert("Describe el suceso.");
+    const rawDesc = document.getElementById('incident-desc').value;
+    const qty = document.getElementById('incidencia-cantidad').value;
+    const category = document.getElementById('incident-class').value;
+    
+    if (!rawDesc) return alert("Describe el suceso.");
 
     saveIncidentBtn.disabled = true;
     saveIncidentBtn.textContent = "Enviando...";
 
+    // Formatear descripción final: Categoría (Cantidad) - Descripción
+    const finalDesc = category + (qty ? ' (' + qty + ')' : '') + ' - ' + rawDesc;
+
     const inc = {
         timestamp: Date.now(),
-        clasificacion: document.getElementById('incident-class').value,
-        cantidad: document.getElementById('incident-qty').value,
-        description: desc,
+        clasificacion: category,
+        cantidad: qty,
+        description: finalDesc,
         author: activeSession.name,
         office: activeSession.office
     };
 
     try {
+        // GPS de respaldo para la incidencia
+        try {
+            const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{timeout:3000}));
+            inc.lat = pos.coords.latitude;
+            inc.lng = pos.coords.longitude;
+        } catch(e) { inc.locationStatus = 'Ubicación aprox. (GPS débil)'; }
         const photo = document.getElementById('incident-photo').files[0];
         if (photo && _fbStorage) {
             const ref = _fbStorage.ref('incidents/' + activeSession.sessionId + '/' + Date.now());
@@ -334,7 +355,7 @@ saveIncidentBtn?.addEventListener('click', async () => {
 
 function resetIncidentForm() {
     document.getElementById('incident-desc').value = "";
-    document.getElementById('incident-qty').value = "";
+    document.getElementById('incidencia-cantidad').value = "";
     document.getElementById('incident-photo').value = "";
     audioBlob = null;
     document.getElementById('audio-preview').classList.add('hidden');

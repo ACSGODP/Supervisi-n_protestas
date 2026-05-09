@@ -134,7 +134,7 @@
     <div id="incident-modal" class="modal hidden-modal">
         <div class="modal-content">
             <h3 id="modal-title">Nueva Incidencia</h3>
-            <div id="incident-class-group" class="form-group">
+            <div class="form-group" id="incident-class-group">
                 <label>Clasificación</label>
                 <select id="incident-class">
                     <option value="Heridos">Heridos</option>
@@ -143,6 +143,10 @@
                     <option value="Enfrentamientos">Enfrentamientos</option>
                     <option value="Reporte de Situación" selected>Reporte de Situación</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad (Si aplica)</label>
+                <input type="number" id="incidencia-cantidad" placeholder="Cantidad (Ej. 5)" min="1">
             </div>
             <div class="form-group">
                 <label>Descripción</label>
