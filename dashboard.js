@@ -6,6 +6,10 @@ const filterDate = document.getElementById('filter-date');
 const refreshBtn = document.getElementById('refresh-btn');
 const reportsList = document.getElementById('reports-list');
 
+const statTotal = document.getElementById('stat-total');
+const statActive = document.getElementById('stat-active');
+const statFinished = document.getElementById('stat-finished');
+
 const _fbDb = (typeof _db !== "undefined") ? _db : null;
 
 let map;
@@ -43,23 +47,34 @@ function listenToFirebaseGlobal() {
 }
 
 async function fetchData() {
-    try {
-        const res = await fetch(GOOGLE_SHEETS_URL);
-        const json = await res.json();
-        // Procesar datos históricos si es necesario
-    } catch (e) { console.error(e); }
+    // Aquí podrías cargar datos históricos de Google Sheets
 }
 
 function updateDashboard(sessions) {
     if (!reportsList) return;
     const sessionIds = Object.keys(sessions);
-    reportsList.innerHTML = sessionIds.map(id => {
-        const s = sessions[id];
+    const sessionsArr = sessionIds.map(id => sessions[id]);
+    
+    // Stats
+    if (statTotal) statTotal.textContent = sessionsArr.length;
+    const activeCount = sessionsArr.filter(s => s.status !== 'finished').length;
+    const finishedCount = sessionsArr.filter(s => s.status === 'finished').length;
+    if (statActive) statActive.textContent = activeCount;
+    if (statFinished) statFinished.textContent = finishedCount;
+
+    // List
+    reportsList.innerHTML = sessionsArr.sort((a,b) => (b.startTime || 0) - (a.startTime || 0)).map(s => {
+        const status = s.status === 'finished' ? 'Finalizada' : 'En curso';
+        const badgeClass = s.status === 'finished' ? 'badge-finished' : 'badge-active';
+        const title = s.location || s.protestName || 'Supervisión';
+        const subtitle = `${s.name || 'Comisionado'} - ${s.office || 'Sede'}`;
+        
         return `
             <div class="report-card">
-                <h3>${s.location}</h3>
-                <p>${s.name} - ${s.office}</p>
-                <p>Status: ${s.status || 'Active'}</p>
+                <h3>${title}</h3>
+                <p><strong>${subtitle}</strong></p>
+                <p>Tipo: ${s.type || 'N/A'}</p>
+                <p>Status: <span class="badge ${badgeClass}">${status}</span></p>
             </div>
         `;
     }).join('');

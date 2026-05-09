@@ -125,8 +125,8 @@
                     <input type="date" id="acp-date" readonly required>
                 </div>
                 <div class="form-group">
-                    <label for="acp-category">CategorÃ­a de SupervisiÃ³n</label>
-                    <select id="acp-category" required>
+                    <label for="acp-categor📷>CategorÃ­a de SupervisiÃ³n</label>
+                    <select id="acp-categor📷 required>
                         <option value="" disabled selected>Selecciona categorÃ­a...</option>
                         <option value="Espacio de movilizaciÃ³n">Espacio de movilizaciÃ³n</option>
                         <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del
@@ -159,7 +159,7 @@
                     <p class="geo-hint" style="color: #666; font-size: 0.9em; margin-bottom: 10px;">ðŸ“ La ubicaciÃ³n se
                         registrarÃ¡ automÃ¡ticamente al iniciar.</p>
                 </div>
-                <button type="submit" class="btn-primary">Registrar e Iniciar</button>
+                <button type="submit" class="btn-primary📷>Registrar e Iniciar</button>
             </form>
         </section>
 
@@ -275,8 +275,8 @@
                     <datalist id="protest-list-plan" class="protest-list-dynamic"></datalist>
                 </div>
                 <div class="form-group">
-                    <label for="category">CategorÃ­a de SupervisiÃ³n</label>
-                    <select id="category" required>
+                    <label for="categor📷>CategorÃ­a de SupervisiÃ³n</label>
+                    <select id="categor📷 required>
                         <option value="" disabled selected>Selecciona categorÃ­a...</option>
                         <option value="Espacio de movilizaciÃ³n">Espacio de movilizaciÃ³n</option>
                         <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del
@@ -317,7 +317,7 @@
                     <p class="geo-hint" style="color: #666; font-size: 0.9em; margin-bottom: 10px;">ðŸ“ La ubicaciÃ³n se
                         registrarÃ¡ automÃ¡ticamente al iniciar.</p>
                 </div>
-                <button type="submit" class="btn-primary">Iniciar SupervisiÃ³n</button>
+                <button type="submit" class="btn-primary📷>Iniciar SupervisiÃ³n</button>
             </form>
         </section>
 
@@ -327,7 +327,7 @@
                 <span class="status-dot"></span>
                 <h3>SupervisiÃ³n en Curso</h3>
             </div>
-            <div id="active-info">
+            <div id="active-info">`n                <p><strong>Comisionado:</strong> <span id="display-name"></span></p>`n                <p><strong>Oficina:</strong> <span id="display-office"></span></p>
                 <p><strong>Punto:</strong> <span id="display-location"></span></p>
                 <p><strong>Inicio:</strong> <span id="display-start"></span></p>
                 <p><strong>GPS Inicio:</strong> <span id="display-start-geo">Pendiente...</span></p>
@@ -337,11 +337,11 @@
 
             <!-- Incidencias -->
             <div class="incident-actions" style="margin: 20px 0; display: flex; gap: 10px; justify-content: center;">
-                <button id="add-incident-btn" class="btn-primary"
+                <button id="add-incident-btn" class="btn-primary📷
                     style="background-color: #f39c12; border-color: #e67e22; flex: 1; padding: 10px;">
                     ðŸš© Registrar Incidencia
                 </button>
-                <button id="add-update-btn" class="btn-primary"
+                <button id="add-update-btn" class="btn-primary📷
                     style="background-color: #3498db; border-color: #2980b9; flex: 1; padding: 10px;">
                     ðŸ”„ Enviar ActualizaciÃ³n
                 </button>
@@ -360,7 +360,7 @@
         <section id="history-section" class="card">
             <div class="history-header">
                 <h2>Historial de Registros</h2>
-                <button id="export-btn" class="btn-secondary">Exportar</button>
+                <button id="export-btn" class="btn-secondar📷>Exportar</button>
             </div>
             <div id="history-list" class="history-list">
                 <!-- Se llenarÃ¡ dinÃ¡micamente -->
@@ -385,8 +385,8 @@
                 </select>
             </div>
             <div class="form-group hidden" id="incident-qty-group">
-                <label for="incident-qty">Cantidad de personas</label>
-                <input type="number" id="incident-qty" min="1" placeholder="Ej. 3">
+                <label for="incident-qt📷>Cantidad de personas</label>
+                <input type="number" id="incident-qt📷 min="1" placeholder="Ej. 3">
             </div>
             <div class="form-group">
                 <label for="incident-time">Hora del evento</label>
@@ -410,16 +410,16 @@
             </div>
             <!-- Controles de Audio -->
             <div class="form-group audio-controls" style="text-align: center; background: #f1f5f9; padding: 10px; border-radius: 8px;">
-                <button id="record-audio-btn" class="btn-secondary" style="background-color: #e74c3c; width: 100%; margin-bottom: 5px;">ðŸŽ¤ Grabar Nota de Voz</button>
+                <button id="record-audio-btn" class="btn-secondar📷 style="background-color: #e74c3c; width: 100%; margin-bottom: 5px;">ðŸŽ¤ Grabar Nota de Voz</button>
                 <button id="stop-audio-btn" class="btn-secondary hidden" style="background-color: #34495e; width: 100%; margin-bottom: 5px;">â¹ï¸ Detener GrabaciÃ³n</button>
                 <div id="audio-timer" class="hidden" style="font-weight: bold; color: #e74c3c;">00:00</div>
                 <audio id="audio-preview" controls class="hidden" style="width: 100%; margin-top: 5px;"></audio>
                 <button id="discard-audio-btn" class="btn-secondary hidden" style="background-color: #95a5a6; width: 100%; margin-top: 5px; font-size: 0.8rem;">ðŸ—‘ï¸ Descartar Audio</button>
             </div>
             <div class="modal-actions" style="display: flex; gap: 10px; justify-content: space-between;">
-                <button id="cancel-incident-btn" class="btn-secondary"
+                <button id="cancel-incident-btn" class="btn-secondar📷
                     style="background-color: #95a5a6;">Cancelar</button>
-                <button id="save-incident-btn" class="btn-primary">Guardar</button>
+                <button id="save-incident-btn" class="btn-primary📷>Guardar</button>
             </div>
         </div>
         </div>
@@ -437,8 +437,8 @@
                 </select>
             </div>
             <div class="modal-actions" style="display: flex; gap: 10px; justify-content: space-between; margin-top: 20px;">
-                <button id="wa-cancel-btn" class="btn-secondary" style="background-color: #95a5a6;">Omitir</button>
-                <button id="wa-send-btn" class="btn-primary" style="background-color: #25D366; border-color: #128C7E;">Abrir WhatsApp</button>
+                <button id="wa-cancel-btn" class="btn-secondar📷 style="background-color: #95a5a6;">Omitir</button>
+                <button id="wa-send-btn" class="btn-primary📷 style="background-color: #25D366; border-color: #128C7E;">Abrir WhatsApp</button>
             </div>
         </div>
     </div>
