@@ -4,232 +4,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Defensoría del Pueblo - Registro de Supervisión</title>
+    <title>Defensoría del Pueblo - Sistema de Supervisión</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
-    <!-- Leaflet CSS -->
+    <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <header class="main-header">
         <div class="header-content">
             <div class="logo-area">
-                <img src="logo.png" alt="Logo Defensoría" class="header-logo">
+                <img src="logo.png" alt="Logo" class="header-logo">
                 <span>DEFENSORÍA DEL PUEBLO</span>
             </div>
-            <div class="header-info">
-                <span>Adjuntía para la Prevención de Conflictos Sociales y la Gobernabilidad</span>
-            </div>
-            <button id="defensor-link" class="admin-link" onclick="adminLogin()">Administrador 🔒</button>
+            <button id="defensor-link" class="admin-link" style="background: rgba(255,255,255,0.1); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;" onclick="adminLogin()">Admin 🔒</button>
         </div>
     </header>
 
     <main class="container">
-        <!-- Selección de Tipo de Supervisión -->
+        <!-- SECCIÓN 1: SELECCIÓN -->
         <section id="selection-section" class="selection-grid">
-            <h2 class="full-width">¿Desde dónde supervisas hoy?</h2>
-            <div class="selection-card-wrapper">
-                <button id="choice-acp" class="selection-card" onclick="showAcpForm()">
-                    <div class="card-icon">🏢</div>
-                    <h3>Oficina desconcentrada</h3>
+            <h2 style="text-align:center; margin: 20px 0; color: var(--primary);">¿Dónde supervisas hoy?</h2>
+            <button id="choice-acp" class="selection-card" onclick="showAcpForm()">
+                <div class="card-icon">🏢</div>
+                <div>
+                    <h3>Oficina Desconcentrada</h3>
                     <p>Registro de supervisión en OD/MOD</p>
-                </button>
-            </div>
-            <div class="selection-card-wrapper">
-                <button id="choice-plan" class="selection-card" onclick="showPlanForm()">
-                    <div class="card-icon">📍</div>
-                    <h3>Lima</h3>
-                    <p>Oficina Principal / Sede Central</p>
-                </button>
-            </div>
+                </div>
+            </button>
+            <button id="choice-plan" class="selection-card" onclick="showPlanForm()">
+                <div class="card-icon">📍</div>
+                <div>
+                    <h3>Sede Central (Lima)</h3>
+                    <p>Supervisión en puntos de movilización</p>
+                </div>
+            </button>
         </section>
 
-        <!-- Formulario OD/MOD -->
+        <!-- SECCIÓN 2: FORMULARIOS (Ocultos inicialmente) -->
         <section id="acp-section" class="card hidden">
-            <div class="section-header">
-                <button class="back-link">⬅️ Volver</button>
-                <h2>Supervisión en Oficina Desconcentrada</h2>
-            </div>
+            <button class="back-link" style="border:none; background:none; color:var(--primary); font-weight:700; cursor:pointer; margin-bottom:15px;">⬅️ Volver</button>
+            <h2>Supervisión OD/MOD</h2>
             <form id="acp-form">
                 <div class="form-group">
-                    <label for="acp-supervisor">Nombre del Comisionado</label>
-                    <input type="text" id="acp-supervisor" placeholder="Tu nombre completo" required>
+                    <label>Nombre del Comisionado</label>
+                    <input type="text" id="acp-supervisor" placeholder="Tu nombre" required>
                 </div>
                 <div class="form-group">
-                    <label for="acp-office">OD/MOD</label>
-                    <input type="text" id="acp-office" list="acp-office-list" placeholder="Escribe para buscar..." required>
-                    <datalist id="acp-office-list">
-                        <option value="OD Amazonas"><option value="OD Áncash"><option value="OD Apurímac"><option value="OD Arequipa"><option value="OD Ayacucho">
-                        <option value="OD Cajamarca"><option value="OD Callao"><option value="OD Cusco"><option value="OD Huánuco"><option value="OD Huancavelica">
-                        <option value="OD Ica"><option value="OD Junín"><option value="OD La Libertad"><option value="OD Lambayeque"><option value="OD Loreto">
-                        <option value="OD Lima"><option value="OD Lima Este"><option value="OD Lima Norte"><option value="OD Lima Sur"><option value="OD Lima Provincias">
-                        <option value="OD Madre de Dios"><option value="OD Moquegua"><option value="OD Pasco"><option value="OD Piura"><option value="OD Puno">
-                        <option value="OD San Martín"><option value="OD Tacna"><option value="OD Tumbes"><option value="OD Ucayali">
-                        <option value="MOD Chimbote"><option value="MOD Huacho"><option value="MOD Jaén"><option value="MOD Juliaca"><option value="MOD La Merced">
-                        <option value="MOD Puquio"><option value="MOD Tarapoto"><option value="MOD Tingo María">
-                    </datalist>
+                    <label>Oficina (OD/MOD)</label>
+                    <input type="text" id="acp-office" list="acp-office-list" placeholder="Selecciona oficina..." required>
+                    <datalist id="acp-office-list"></datalist>
                 </div>
-                <button type="submit" class="btn-primary">Registrar e Iniciar</button>
+                <button type="submit" class="btn-primary">Iniciar Registro 🚀</button>
             </form>
         </section>
 
-        <!-- Formulario Sede Central (Lima) -->
         <section id="start-section" class="card hidden">
-            <div class="section-header">
-                <button class="back-link">⬅️ Volver</button>
-                <h2>Supervisión Lima</h2>
-            </div>
+            <button class="back-link" style="border:none; background:none; color:var(--primary); font-weight:700; cursor:pointer; margin-bottom:15px;">⬅️ Volver</button>
+            <h2>Supervisión Lima</h2>
             <form id="start-form">
                 <div class="form-group">
-                    <label for="office">Oficina / Adjuntía / Sede</label>
-                    <input type="text" id="office" list="office-list" placeholder="Escribe para buscar oficina..." required>
-                    <datalist id="office-list">
-                        <option value="Adjuntía para la Prevención de Conflictos Sociales"><option value="Adjuntía para los Derechos Humanos"><option value="Adjuntía para los Derechos de la Mujer">
-                        <option value="Despacho del Defensor del Pueblo"><option value="Oficina de Comunicaciones">
-                    </datalist>
+                    <label>Nombre del Comisionado</label>
+                    <input type="text" id="name" placeholder="Tu nombre" required>
                 </div>
                 <div class="form-group">
-                    <label for="name">Nombre del Comisionado</label>
-                    <input type="text" id="name" placeholder="Tu nombre completo" required>
-                </div>
-                <div class="form-group">
-                    <label for="protest-name">Nombre de la Protesta</label>
-                    <input type="text" id="protest-name" list="protest-list-plan" placeholder="Nombre del colectivo o marcha" required>
+                    <label>Nombre de la Protesta</label>
+                    <input type="text" id="protest-name" list="protest-list-plan" placeholder="Colectivo o marcha..." required>
                     <datalist id="protest-list-plan"></datalist>
                 </div>
                 <div class="form-group">
-                    <label for="category">Categoría de Supervisión</label>
+                    <label>Categoría</label>
                     <select id="category" required>
-                        <option value="" disabled selected>Selecciona categoría...</option>
+                        <option value="" disabled selected>Selecciona...</option>
                         <option value="Espacio de movilización">Espacio de movilización</option>
-                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del Estado</option>
+                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial</option>
                         <option value="Establecimiento de salud">Establecimiento de salud</option>
-                        <option value="Videovigilancia">Videovigilancia</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="location">Punto de Supervisión</label>
-                    <input type="text" id="location" list="location-list" placeholder="Escribe o selecciona..." required>
+                    <label>Punto de Supervisión</label>
+                    <input type="text" id="location" list="location-list" placeholder="Punto exacto..." required>
                     <datalist id="location-list"></datalist>
                 </div>
-                <div class="form-group">
-                    <label for="date">Fecha de la Supervisión</label>
-                    <input type="date" id="date" readonly required>
-                </div>
-                <button type="submit" class="btn-primary">Iniciar Supervisión</button>
+                <button type="submit" class="btn-primary">Iniciar Supervisión 📍</button>
             </form>
         </section>
 
-        <!-- Sesión Activa -->
-        <section id="active-section" class="card hidden">
-            <div class="active-header">
-                <span class="status-dot"></span>
-                <h3>Supervisión en Curso</h3>
+        <!-- SECCIÓN 3: SESIÓN ACTIVA -->
+        <section id="active-section" class="card hidden" style="padding:0; overflow:hidden;">
+            <div style="background:var(--primary); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:700;">🔵 EN VIVO</span>
+                <div id="timer" style="font-family:monospace; font-size:1.2rem;">00:00:00</div>
             </div>
-            <div id="active-info">
-                <p><strong>Comisionado:</strong> <span id="display-name"></span></p>
-                <p><strong>Oficina:</strong> <span id="display-office"></span></p>
-                <p><strong>Punto:</strong> <span id="display-location"></span></p>
-                <p><strong>Inicio:</strong> <span id="display-start"></span></p>
-                <p><strong>GPS Actual:</strong> <span id="display-start-geo">Obteniendo...</span></p>
-                
-                <!-- Mapa Visual del Comisionado -->
-                <div id="minimapa-comisionado" style="height: 180px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #ddd;"></div>
+            
+            <div id="minimapa-comisionado" style="height: 180px; width: 100%;"></div>
+            
+            <div style="padding:15px;">
+                <p style="font-size:0.9rem; margin-bottom:5px;"><strong>Punto:</strong> <span id="display-location"></span></p>
+                <p style="font-size:0.9rem; color:#666;"><strong>GPS:</strong> <span id="display-start-geo">Obteniendo...</span></p>
             </div>
-            <div class="timer" id="timer">00:00:00</div>
 
-            <div class="incident-actions">
-                <button id="add-incident-btn" class="btn-primary" style="background-color: #f39c12; margin-bottom:10px;">
-                    🚨 Registrar Incidencia
-                </button>
-                <button id="add-update-btn" class="btn-primary" style="background-color: #3498db;">
-                    📝 Enviar Actualización
-                </button>
+            <div style="padding:15px; border-top:1px solid #eee;">
+                <button id="add-incident-btn" class="btn-primary" style="background:#f39c12; margin-bottom:10px;">🚨 Reportar Incidencia</button>
+                <button id="add-update-btn" class="btn-primary" style="background:#3498db;">📝 Enviar Actualización</button>
             </div>
-            
-            <h4 style="margin: 15px 0 5px; color: #003366;">Feed en Tiempo Real (Compartido)</h4>
-            <div id="incidents-timeline" class="timeline-container" style="max-height: 400px; background: #f9f9f9;"></div>
-            
-            <button id="finish-btn" class="btn-primary" style="background-color: #e74c3c; margin-top:20px;">Finalizar Supervisión</button>
+
+            <div id="incidents-timeline" class="timeline-container" style="height:350px;">
+                <!-- Feed dinámico -->
+            </div>
+
+            <button id="finish-btn" class="btn-primary" style="background:#e74c3c; border-radius:0; margin-top:10px;">Finalizar Supervisión</button>
         </section>
 
-        <!-- Historial Local -->
         <section id="history-section" class="card">
-            <div class="section-header">
-                <h2>Historial Local</h2>
-                <button id="export-btn" class="btn-secondary">Exportar CSV</button>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>Mis Registros</h3>
+                <button id="export-btn" style="padding:5px 10px; border-radius:5px; border:1px solid #ddd; background:none; cursor:pointer;">CSV</button>
             </div>
-            <div id="history-list"></div>
+            <div id="history-list" style="margin-top:15px;"></div>
         </section>
     </main>
 
-    <!-- Modal Incidencia -->
+    <!-- MODAL INCIDENCIAS -->
     <div id="incident-modal" class="modal hidden-modal">
         <div class="modal-content">
             <h3 id="modal-title">Nueva Incidencia</h3>
-            <div class="form-group" id="incident-class-group">
+            <div id="incident-class-group" class="form-group">
                 <label>Clasificación</label>
                 <select id="incident-class">
                     <option value="Heridos">Heridos</option>
                     <option value="Fallecidos">Fallecidos</option>
                     <option value="Privados de la libertad">Privados de la libertad</option>
                     <option value="Enfrentamientos">Enfrentamientos</option>
-                    <option value="Uso desmedido de la fuerza">Uso desmedido de la fuerza</option>
                     <option value="Reporte de Situación" selected>Reporte de Situación</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Hora</label>
-                <input type="time" id="incident-time">
+                <label>Descripción</label>
+                <textarea id="incident-desc" rows="3" placeholder="¿Qué está pasando?"></textarea>
             </div>
             <div class="form-group">
-                <label>Cantidad (Personas involucradas)</label>
-                <input type="number" id="incident-qty" placeholder="0">
-            </div>
-            <div class="form-group">
-                <label>Descripción del suceso</label>
-                <textarea id="incident-desc" rows="3" placeholder="Describe brevemente lo ocurrido..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Foto Directa (Cámara)</label>
-                <!-- Forzar cámara con capture="environment" -->
+                <label>Foto (Cámara)</label>
                 <input type="file" id="incident-photo" accept="image/*" capture="environment">
             </div>
-            <div class="audio-section" style="background: #f0f4f8; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                <p style="font-size: 0.85em; margin-bottom: 5px; color: #555;">Grabadora de Voz:</p>
-                <button id="record-audio-btn" class="btn-secondary" style="width: auto; padding: 5px 15px;">🎤 Grabar</button>
-                <button id="stop-audio-btn" class="btn-secondary hidden" style="width: auto; padding: 5px 15px; background: #e74c3c; color: #fff;">🛑 Detener</button>
-                <audio id="audio-preview" controls class="hidden" style="margin-top: 10px; width: 100%;"></audio>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button id="record-audio-btn" class="btn-primary" style="background:#2c3e50; font-size:0.8rem;">🎤 Grabar Voz</button>
+                <button id="stop-audio-btn" class="btn-primary hidden" style="background:#c0392b; font-size:0.8rem;">🛑 Parar</button>
             </div>
-            <div class="modal-buttons">
-                <button id="cancel-incident-btn" class="btn-secondary">Cancelar</button>
-                <button id="save-incident-btn" class="btn-primary">Enviar Reporte</button>
+            <audio id="audio-preview" controls class="hidden" style="width:100%; margin-bottom:15px;"></audio>
+            <div style="display:flex; gap:10px;">
+                <button id="cancel-incident-btn" class="btn-primary" style="background:#95a5a6;">Cancelar</button>
+                <button id="save-incident-btn" class="btn-primary">Enviar ➡️</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal WhatsApp -->
+    <!-- MODAL WHATSAPP -->
     <div id="wa-modal" class="modal hidden-modal">
         <div class="modal-content">
             <h3>📢 Alerta Crítica</h3>
-            <p>Se ha detectado una incidencia grave. ¿A quién deseas alertar por WhatsApp?</p>
-            <div class="form-group">
-                <label>Contacto de Emergencia</label>
-                <select id="wa-contact-select"></select>
-            </div>
-            <div class="modal-buttons">
-                <button id="wa-cancel-btn" class="btn-secondary">Omitir</button>
-                <button id="wa-send-btn" class="btn-primary">Enviar WhatsApp</button>
+            <p style="margin-bottom:15px; color:#666;">¿A quién deseas notificar por WhatsApp?</p>
+            <select id="wa-contact-select" class="form-group" style="padding:12px;"></select>
+            <div style="display:flex; gap:10px;">
+                <button id="wa-cancel-btn" class="btn-primary" style="background:#95a5a6;">Omitir</button>
+                <button id="wa-send-btn" class="btn-primary">Enviar WhatsApp ✅</button>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Firebase SDK -->
+    <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>

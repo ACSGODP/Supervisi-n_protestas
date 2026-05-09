@@ -1,256 +1,76 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tablero - Defensor del Pueblo</title>
+    <title>Tablero - Defensoría del Pueblo</title>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <!-- Firebase Compat SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-Díatabase-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
-    <!-- Firebase Config -->
-    <script src="firebase-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Estilos específicos para el Díashboard */
-        .Díashboard-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .filters {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            margin-bottom: 2rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            align-items: end;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
-
-        .stat-card h3 {
-            font-size: 0.9rem;
-            color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #003366;
-        }
-
-        .report-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .report-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border-left: 5px solid #003366;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 1rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .report-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .report-meta {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-
-        @media (max-width: 600px) {
-            .report-card {
-                grid-template-columns: 1fr;
-            }
-        }
+        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .map-wrapper { margin: 20px 0; background: white; padding: 10px; border-radius: 20px; box-shadow: var(--shadow); }
+        #map-dashboard { height: 500px; width: 100%; border-radius: 15px; z-index: 1; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .feed-card { background: white; border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; height: 700px; display: flex; flex-direction: column; }
+        .feed-header { background: var(--primary); color: white; padding: 15px; font-weight: 700; }
+        #global-feed { flex: 1; overflow-y: auto; padding: 15px; background: #e5ddd5; }
     </style>
 </head>
 
 <body>
-    <header>
-        <div class="header-content">
-            <div class="logo">
-                <img src="logo.png" alt="Logo Defensoría" class="header-logo">
-                <span>DEFENSORÍA DEL PUEBLO</span>
+    <header class="main-header">
+        <div class="header-content" style="max-width: 1400px;">
+            <div class="logo-area">
+                <img src="logo.png" alt="Logo" class="header-logo">
+                <span>TABLERO DE SUPERVISIÓN</span>
             </div>
-            <div class="badge">Panel de Control</div>
-            <a href="index.html" class="admin-link">Volver al Formulario</a>
+            <div style="display:flex; gap:10px;">
+                <input type="date" id="filter-date" style="padding:5px; border-radius:5px; border:none;">
+                <button id="refresh-btn" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">Actualizar 🔄</button>
+            </div>
         </div>
     </header>
 
-    <main class="Díashboard-container">
-        <!-- Filtros -->
-        <section class="filters">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>📅 Fecha de Reporte</label>
-                <input type="Díate" id="filter-Díate">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>🗺️ Región / ÁÁmbito</label>
-                <select id="filter-region">
-                    <option value="">Todo (Lima y Provincias)</option>
-                    <option value="Sede Central">Lima (Sede Central)</option>
-                    <option value="Oficina DesconcentraDía">Provincias (OD/MOD)</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>📢 Nombre de Protesta</label>
-                <select id="filter-protest">
-                    <option value="">ToDías las protestas</option>
-                    <!-- Se llena dinámicamente -->
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-                <button id="refresh-btn" class="btn-primary" style="height: 48px; flex: 1; min-width: 120px;">
-                    Actualizar 🔄
-                </button>
-                <button id="manage-lists-btn" class="btn-seconDíary"
-                    style="height: 48px; flex: 1; background-color: #f39c12; border-color: #d35400; min-width: 120px;">
-                    Listas 📋
-                </button>
-                <button id="generate-doc-btn" class="btn-seconDíary"
-                    style="height: 48px; flex: 1; background-color: #27ae60; border-color: #2ecc71; min-width: 150px;">
-                    📄 Crear Reporte
-                </button>
-            </div>
-        </section>
-
-        <!-- Mapa en Vivo -->
-        <section id="map-section" style="margin-bottom: 2rem;">
-            <div id="map-Díashboard" style="height: 450px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; z-index: 1;"></div>
-        </section>
-
+    <main class="dashboard-container">
         <!-- Estadísticas -->
-        <section id="stats-section" class="stats-grid">
-            <div class="stat-card">
-                <h3>Supervisiones Hoy</h3>
-                <div class="value" id="stat-total">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>En Curso</h3>
-                <div class="value" id="stat-active" style="color: #3b82f6;">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>FinalizaDías</h3>
-                <div class="value" id="stat-finished" style="color: #64748b;">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Incidencias ReportaDías</h3>
-                <div class="value" id="stat-incidents" style="color: #e67e22;">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Heridos</h3>
-                <div class="value" id="stat-heridos" style="color: #ea580c;">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Fallecidos</h3>
-                <div class="value" id="stat-fallecidos" style="color: #dc2626;">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Privados Libertad</h3>
-                <div class="value" id="stat-detenidos" style="color: #9333ea;">0</div>
-            </div>
+        <section class="stats-grid">
+            <div class="stat-card"><h3>Activas</h3><span class="stat-value" id="stat-active" style="color:var(--success);">0</span></div>
+            <div class="stat-card"><h3>Incidencias</h3><span class="stat-value" id="stat-incidents" style="color:var(--accent);">0</span></div>
+            <div class="stat-card"><h3>Heridos</h3><span class="stat-value" id="stat-heridos" style="color:#e67e22;">0</span></div>
+            <div class="stat-card"><h3>Fallecidos</h3><span class="stat-value" id="stat-fallecidos" style="color:#c0392b;">0</span></div>
+            <div class="stat-card"><h3>Privados Libertad</h3><span class="stat-value" id="stat-detenidos" style="color:#8e44ad;">0</span></div>
         </section>
 
-        <!-- Lista de Reportes -->
-        <section id="reports-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-            <div>
-                <h2 id="list-title">Reportes del Día</h2>
-                <div id="loading" style="text-align: center; padding: 2rem;">
-                    Cargando Díatos... ⏳
-                </div>
-                <div id="reports-list" class="report-list link-container"></div>
-            </div>
-            
-            <!-- Feed Global en Tiempo Real -->
-            <div>
-                <h2>Feed en Tiempo Real (Incidencias)</h2>
-                <div id="global-feed" class="timeline-container" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); max-height: 600px; overflow-y: auto;">
-                    <p style="text-align: center; color: #666; margin-top: 20px;">Esperando actualizaciones en vivo...</p>
-                </div>
-            </div>
-        </section>
-    </main>
+        <!-- Mapa -->
+        <div class="map-wrapper">
+            <div id="map-dashboard"></div>
+        </div>
 
-    <!-- MoDíal Visor de Imagen Completa -->
-    <div id="image-moDíal" class="moDíal hidden-moDíal" style="z-index: 2000; background: rgba(0,0,0,0.9); display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center;">
-        <span id="close-image-moDíal" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
-        <img class="moDíal-content" id="full-image" style="max-width: 90%; max-height: 90vh; border-radius: 0; background: transparent; padding: 0;">
-    </div>
-
-    <!-- MoDíal Gestión de Listas -->
-    <div id="lists-moDíal" class="moDíal hidden-moDíal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-        <div class="moDíal-content"
-            style="background:white; padding:2rem; border-radius:12px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto;">
-            <h3 style="margin-top:0;">Gestionar Listas Dinámicas</h3>
-            <p style="font-size:0.9rem; color:#666;">Agrega nuevos ítems para que aparezcan en la App.</p>
-
-            <div style="margin-top:20px; border-bottom:1px solid #eee; padding-bottom:20px;">
-                <label style="display:block; font-weight:600; margin-bottom:5px;">📋 ¿Qué lista deseas actualizar?</label>
-                <select id="list-type-select" style="width:100%; padding:10px; border:1px solid #666; border-radius:6px; margin-bottom: 10px;">
-                    <option value="protesta">📢 Nombre de Protesta</option>
-                    <option value="lugar">📍 Espacio de movilización</option>
-                    <option value="comisaria">🚓 Dependencia policial / SeguriDíad del Estado</option>
-                    <option value="salud">🏥 Establecimiento de salud</option>
-                    <option value="video">📹 Videovigilancia</option>
-                </select>
-
-                <label style="display:block; font-weight:600; margin-bottom:5px; margin-top: 15px;">Escribe el nuevo nombre</label>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <input type="text" id="new-list-item-input" placeholder="Ej. Comisaría San Andrés..."
-                        style="flex-grow:1; width:auto; min-width:0; padding:10px; border:1px solid #666; border-radius:6px;">
-                    <button id="add-list-item-btn" class="btn-primary" style="width: auto; padding:0 15px;">Agregar</button>
-                </div>
+        <div style="display: grid; grid-template-columns: 1fr 400px; gap: 20px; margin-top: 20px;">
+            <!-- Reportes -->
+            <div class="card">
+                <h2 id="list-title">Supervisiones Hoy</h2>
+                <div id="loading" style="text-align:center; padding:50px; font-weight:700;">Cargando datos... ⏳</div>
+                <div id="reports-list"></div>
             </div>
 
-            <div style="margin-top:20px; text-align:right;">
-                <button id="close-lists-btn" class="btn-seconDíary" style="background:#95a5a6;">Cerrar</button>
+            <!-- Feed -->
+            <div class="feed-card">
+                <div class="feed-header">📡 Feed en Tiempo Real</div>
+                <div id="global-feed"></div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <script src="Díashboard.js"></script>
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 
 </html>
