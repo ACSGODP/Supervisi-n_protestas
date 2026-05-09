@@ -346,7 +346,8 @@ acpForm?.addEventListener('submit', async e => {
         turno: document.getElementById('acp-turno').value,
         name: document.getElementById('acp-supervisor').value,
         office: document.getElementById('acp-office').value,
-        location: document.getElementById('acp-office').value,
+        category: document.getElementById('acp-category').value,
+        location: document.getElementById('acp-location').value,
         startTime: Date.now(),
         initialPhoto: photoUrl
     });

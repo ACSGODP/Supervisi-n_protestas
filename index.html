@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -79,13 +79,6 @@
                     <label>Oficina (OD/MOD)</label>
                     <select id="acp-office" required>
                         <option value="" disabled selected>Selecciona oficina...</option>
-                        <option value="Adjuntía Prevención de Conflictos Sociales">Adjuntía Prevención de Conflictos Sociales</option>
-                        <option value="Adjuntía Derechos Humanos">Adjuntía Derechos Humanos</option>
-                        <option value="Adjuntía Derechos de la Mujer">Adjuntía Derechos de la Mujer</option>
-                        <option value="Adjuntía Niñez y Adolescencia">Adjuntía Niñez y Adolescencia</option>
-                        <option value="Adjuntía Medio Ambiente y Pueblos Indígenas">Adjuntía Medio Ambiente y Pueblos Indígenas</option>
-                        <option value="Adjuntía Administración Estatal">Adjuntía Administración Estatal</option>
-                        <option value="Adjuntía Lucha contra la Corrupción">Adjuntía Lucha contra la Corrupción</option>
                         <option value="OD Amazonas">OD Amazonas</option>
                         <option value="OD Áncash (Huaraz)">OD Áncash (Huaraz)</option>
                         <option value="OD Apurímac">OD Apurímac</option>
@@ -100,10 +93,6 @@
                         <option value="OD Junín">OD Junín</option>
                         <option value="OD La Libertad">OD La Libertad</option>
                         <option value="OD Lambayeque">OD Lambayeque</option>
-                        <option value="OD Lima">OD Lima</option>
-                        <option value="OD Lima Este">OD Lima Este</option>
-                        <option value="OD Lima Norte">OD Lima Norte</option>
-                        <option value="OD Lima Sur">OD Lima Sur</option>
                         <option value="OD Loreto">OD Loreto</option>
                         <option value="OD Madre de Dios">OD Madre de Dios</option>
                         <option value="OD Moquegua">OD Moquegua</option>
@@ -125,6 +114,20 @@
                         <option value="MOD Yurimaguas">MOD Yurimaguas</option>
                         <option value="Administración / Otros">Administración / Otros</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Categoría de Supervisión</label>
+                    <select id="acp-category" required>
+                        <option value="" disabled selected>Selecciona...</option>
+                        <option value="Espacio de movilización">Espacio de movilización</option>
+                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial</option>
+                        <option value="Establecimiento de salud">Establecimiento de salud</option>
+                        <option value="Cámara">Cámara</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Punto de Supervisión</label>
+                    <input type="text" id="acp-location" placeholder="Escribe el punto exacto..." required>
                 </div>
                 <div class="form-group">
                     <label>Foto Inicial de Supervisión</label>
