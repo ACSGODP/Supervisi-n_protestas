@@ -5,8 +5,16 @@ function fbRef(path) { return _fbDb ? _fbDb.ref(path) : null; }
 let map;
 let markers = {};
 let currentSessionsRef = null;
-let allSessionsOfDate = {}; // Almacén global para filtrado secundario
-const GOOGLE_WEBHOOK_URL = ''; // Se completa después
+let allSessionsOfDate = {};
+const GOOGLE_WEBHOOK_URL = '';
+
+// Ícono de alerta definido globalmente para uso en updateMarker y syncOtherCommissioners
+const alertaIcon = L.divIcon({
+    html: "<div style='font-size:24px; background:red; border-radius:50%; padding:4px; border:3px solid white; box-shadow:0 0 12px red; display:flex; align-items:center; justify-content:center;'>🚨</div>",
+    className: 'alerta-pin',
+    iconSize: [38, 38],
+    iconAnchor: [19, 19]
+});
 
 // --- INICIALIZACIÓN ---
 function initDashboard() {
@@ -36,6 +44,9 @@ function initDashboard() {
 
     // Sync BI
     document.getElementById('sync-gsheets-btn')?.addEventListener('click', exportarAGoogleSheets);
+
+    // Descargar CSV
+    document.getElementById('btn-descargar-csv')?.addEventListener('click', descargarCSV);
 
     // Carga inicial
     listenToSessions(filterDate.value);
@@ -164,33 +175,22 @@ function updateStatsAndMap(sessions) {
     safeSetText('stat-detenidos', detenidos);
 }
 
-// Rastrear el estado de alerta anterior por ID para forzar setIcon solo cuando cambia
+// Rastrear estado de alerta anterior por ID
 const markerAlertState = {};
 
 function updateMarker(id, s, lat, lng) {
-    // Lee el campo booleano directamente del documento de la sesión
     const hasAlert = s.alertaActiva === true;
-
-    // Ícono de emergencia: div rojo con emoji parpadeante
-    const alertaIcon = L.divIcon({
-        html: '<div class="pulse-alert">🚨</div>',
-        className: 'alert-marker-wrapper',
-        iconSize: [44, 44],
-        iconAnchor: [22, 44]
-    });
-    // Ícono normal: pin azul estándar de Leaflet
     const normalIcon = new L.Icon.Default();
     const iconToUse = hasAlert ? alertaIcon : normalIcon;
 
     if (markers[id]) {
         markers[id].setLatLng([lat, lng]);
-        // Actualizar icono SOLO si el estado de alerta cambió
+        // Forzar setIcon si el estado de alerta cambió
         if (markerAlertState[id] !== hasAlert) {
             markers[id].setIcon(iconToUse);
             markerAlertState[id] = hasAlert;
         }
     } else {
-        // Primera vez: crear marcador con el ícono correcto
         markers[id] = L.marker([lat, lng], { icon: iconToUse }).addTo(map);
         markers[id].bindTooltip(s.name + ' (' + s.office + ')', {
             direction: 'top',
@@ -199,7 +199,6 @@ function updateMarker(id, s, lat, lng) {
         markerAlertState[id] = hasAlert;
     }
 }
-
 
 let latestFilteredSessions = {}; // Para el acordeón
 
@@ -334,4 +333,42 @@ function getIncidentColor(cls) {
 function formatTime(ts) { return ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""; }
 function safeSetText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
 
+function descargarCSV() {
+    const sessions = allSessionsOfDate;
+    if (!sessions || Object.keys(sessions).length === 0) {
+        alert("No hay datos para exportar en la fecha seleccionada.");
+        return;
+    }
+
+    const headers = ["Fecha", "Comisionado", "Oficina", "Protesta", "Punto", "Inicio", "Fin", "Estado"];
+    const rows = Object.values(sessions).map(s => [
+        s.fecha || "",
+        s.name || "",
+        s.office || "",
+        s.protestName || "OD/MOD",
+        s.location || "",
+        formatTime(s.startTime),
+        s.endTime ? formatTime(s.endTime) : "En curso",
+        s.status === 'finished' ? 'Finalizado' : 'Activo'
+    ]);
+
+    // Escapar comas dentro de los campos
+    const escape = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const csvContent = [headers.map(escape).join(",")]
+        .concat(rows.map(r => r.map(escape).join(",")))
+        .join("\n");
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const fecha = document.getElementById("filter-date").value || "hoy";
+    a.href = url;
+    a.download = "padron_supervisiones_" + fecha + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 initDashboard();
+

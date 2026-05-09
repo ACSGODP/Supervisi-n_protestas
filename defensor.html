@@ -11,13 +11,131 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .map-wrapper { margin: 20px 0; background: white; padding: 10px; border-radius: 20px; box-shadow: var(--shadow); }
-        #map-dashboard { height: 500px; width: 100%; border-radius: 15px; z-index: 1; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .feed-card { background: white; border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; height: 700px; display: flex; flex-direction: column; }
-        .feed-header { background: var(--primary); color: white; padding: 15px; font-weight: 700; }
-        #global-feed { flex: 1; overflow-y: auto; padding: 15px; background: #e5ddd5; }
+        /* ===== DASHBOARD BASE ===== */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* ===== HEADER RESPONSIVO ===== */
+        .header-content {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .header-controls input[type="date"],
+        .header-controls select {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.85rem;
+            min-width: 0;
+        }
+        .header-controls select {
+            max-width: 160px;
+        }
+        .btn-header {
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        /* ===== STATS GRID RESPONSIVA ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 480px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 900px) {
+            .stats-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        /* ===== MAPA ===== */
+        .map-wrapper {
+            margin: 15px 0;
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+        #map-dashboard {
+            height: 280px;
+            width: 100%;
+            border-radius: 15px;
+            z-index: 1;
+        }
+        @media (min-width: 768px) {
+            #map-dashboard { height: 420px; }
+        }
+        @media (min-width: 1024px) {
+            #map-dashboard { height: 500px; }
+        }
+
+        /* ===== PANEL INFERIOR: FEED + SUPERVISIONES ===== */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (min-width: 1024px) {
+            .bottom-grid { grid-template-columns: 1fr 350px; }
+        }
+
+        /* ===== FEED ===== */
+        .feed-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 450px;
+        }
+        @media (min-width: 1024px) {
+            .feed-card { height: 800px; }
+        }
+        .feed-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        #global-feed {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #e5ddd5;
+        }
+
+        /* ===== SUPERVISIONES ===== */
+        .sessions-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            overflow-y: auto;
+            min-height: 300px;
+        }
+        @media (min-width: 1024px) {
+            .sessions-card { height: 800px; }
+        }
     </style>
 </head>
 
@@ -28,14 +146,16 @@
                 <img src="logo.png" alt="Logo" class="header-logo">
                 <span>TABLERO DE SUPERVISIÓN</span>
             </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <input type="date" id="filter-date" style="padding:5px; border-radius:5px; border:none;">
-                <select id="filter-protest" style="padding:5px; border-radius:5px; border:none; max-width:200px;">
+            <!-- BOTONERA RESPONSIVA: se envuelve en múltiples filas en móvil -->
+            <div class="header-controls">
+                <input type="date" id="filter-date">
+                <select id="filter-protest">
                     <option value="all">Todas las protestas</option>
                 </select>
-                <button id="refresh-btn" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">Actualizar 🔄</button>
-                <button id="timeline-btn" style="background:#34495e; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">⏱️ Línea Tiempo</button>
-                <button id="sync-gsheets-btn" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">🔄 Sincronizar BI</button>
+                <button id="refresh-btn" class="btn-header" style="background:var(--accent);">🔄 Actualizar</button>
+                <button id="timeline-btn" class="btn-header" style="background:#34495e;">⏱️ Línea Tiempo</button>
+                <button id="btn-descargar-csv" class="btn-header" style="background:#8e44ad;">📊 CSV</button>
+                <button id="sync-gsheets-btn" class="btn-header" style="background:#27ae60;">🔄 Sincronizar BI</button>
             </div>
         </div>
     </header>
@@ -47,7 +167,7 @@
             <div class="stat-card"><h3>Incidencias</h3><span class="stat-value" id="stat-incidents" style="color:var(--accent);">0</span></div>
             <div class="stat-card"><h3>Heridos</h3><span class="stat-value" id="stat-heridos" style="color:#e67e22;">0</span></div>
             <div class="stat-card"><h3>Fallecidos</h3><span class="stat-value" id="stat-fallecidos" style="color:#c0392b;">0</span></div>
-            <div class="stat-card"><h3>Privados Libertad</h3><span class="stat-value" id="stat-detenidos" style="color:#8e44ad;">0</span></div>
+            <div class="stat-card"><h3>Priv. Libertad</h3><span class="stat-value" id="stat-detenidos" style="color:#8e44ad;">0</span></div>
         </section>
 
         <!-- Mapa -->
@@ -55,17 +175,18 @@
             <div id="map-dashboard"></div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 350px; gap: 20px; margin-top: 20px;">
-            <!-- Feed (IZQUIERDA) -->
-            <div class="feed-card" style="height: 800px;">
+        <!-- Feed + Supervisiones (apilados en móvil, lado a lado en desktop) -->
+        <div class="bottom-grid">
+            <!-- Feed (primero en el DOM = aparece primero en móvil) -->
+            <div class="feed-card">
                 <div class="feed-header">📡 Feed en Tiempo Real</div>
                 <div id="global-feed"></div>
             </div>
 
-            <!-- Supervisiones (DERECHA) -->
-            <div class="card" style="height: 800px; overflow-y: auto;">
-                <h2 id="list-title" style="font-size: 1.2rem;">Supervisiones Hoy</h2>
-                <div id="loading" style="text-align:center; padding:50px; font-weight:700;">Cargando datos... ⏳</div>
+            <!-- Supervisiones -->
+            <div class="sessions-card">
+                <h2 id="list-title" style="font-size: 1.1rem; margin-top:0;">Supervisiones Hoy</h2>
+                <div id="loading" style="text-align:center; padding:40px; font-weight:700;">Cargando datos... ⏳</div>
                 <div id="reports-list"></div>
             </div>
         </div>
