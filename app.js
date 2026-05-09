@@ -1,4 +1,15 @@
-﻿// === FUNCIONES GLOBALES (disponibles antes de que cargue el resto) ===
+﻿// === CAPTURA DE ERRORES GLOBAL (diagnóstico) ===
+window.onerror = function(msg, src, line, col, err) {
+    var info = "JS ERROR en línea " + line + ": " + msg;
+    document.body.style.background = "#fee";
+    var div = document.createElement("div");
+    div.style.cssText = "position:fixed;top:0;left:0;right:0;background:red;color:white;padding:10px;z-index:99999;font-size:14px;word-break:break-all;";
+    div.textContent = info;
+    document.body.appendChild(div);
+    return false;
+};
+
+// === FUNCIONES GLOBALES (disponibles antes de que cargue el resto) ===
 
 const ADMIN_PASSWORD = "Defensoria2026";
 
