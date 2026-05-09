@@ -35,7 +35,7 @@
                 <span>DEFENSORÍA DEL PUEBLO</span>
             </div>
             <div class="badge">Adjuntía para la Prevención de Conflictos Sociales y la Gobernabilidad</div>
-            <button id="defensor-link" class="admin-link">Administrador 🔒</button>
+            <button id="defensor-link" class="admin-link" onclick="adminLogin()">Administrador 🔒</button>
         </div>
     </header>
 
@@ -44,12 +44,12 @@
         <section id="selection-section" class="card">
             <h2>¿Desde dónde supervisas hoy?</h2>
             <div class="selection-grid">
-                <button id="choice-acp" class="selection-card">
+                <button id="choice-acp" class="selection-card" onclick="showAcpForm()">
                     <span class="icon">🏢</span>
                     <span class="label">Oficina desconcentrada</span>
                     <span class="desc">Registro de supervisión en OD/MOD</span>
                 </button>
-                <button id="choice-plan" class="selection-card">
+                <button id="choice-plan" class="selection-card" onclick="showPlanForm()">
                     <span class="icon">🏛️</span>
                     <span class="label">Lima</span>
                     <span class="desc">Oficina Principal / Sede Central</span>

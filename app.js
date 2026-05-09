@@ -1,4 +1,18 @@
-﻿
+﻿// === FUNCIONES GLOBALES (disponibles antes de que cargue el resto) ===
+
+const ADMIN_PASSWORD = "Defensoria2026";
+
+function adminLogin() {
+    var pass = prompt("Ingrese clave de administrador:");
+    if (pass === null) return; // usuario cancelo
+    if (pass === ADMIN_PASSWORD) {
+        window.location.href = "defensor.html";
+    } else {
+        alert("Clave incorrecta. Intenta nuevamente.");
+    }
+}
+
+
 // Guardas de seguridad: Firebase puede no estar disponible (file://, offline, etc.)
 const _fbDb      = (typeof _db      !== "undefined") ? _db      : null;
 const _fbStorage = (typeof _storage !== "undefined") ? _storage : null;
@@ -19,7 +33,6 @@ if ('serviceWorker' in navigator) {
 
 // CONFIGURACI�"N: Reemplaza esto con la URL que obtendrás de Google Apps Script
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbz9GbqHfoAQarF5pv4da2jJDcSSTz7suco2O5SyaZ8X_4sJOTVbYZhiTrj0X501uECW/exec";
-const ADMIN_PASSWORD = "Defensoria2026";
 
 // Variable global para contactos
 let waContacts = [];
