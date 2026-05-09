@@ -62,8 +62,10 @@ function init() {
     history = JSON.parse(localStorage.getItem('dp_history')) || [];
 
     // Fechas
-    const dateInput = document.getElementById('date');
-    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+    const dateLima = document.getElementById('date');
+    if (dateLima) dateLima.value = new Date().toISOString().split('T')[0];
+    const dateAcp = document.getElementById('acp-date');
+    if (dateAcp) dateAcp.value = new Date().toISOString().split('T')[0];
 
     // Listeners
     document.getElementById('choice-acp')?.addEventListener('click', () => showSection('acp-section'));
@@ -221,30 +223,59 @@ function getIncidentColor(cls) {
 }
 
 // --- FORM HANDLERS ---
+// --- FORM HANDLERS ---
 const acpForm = document.getElementById('acp-form');
-acpForm?.addEventListener('submit', e => {
+acpForm?.addEventListener('submit', async e => {
     e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = "Procesando...";
+
+    const photoFile = document.getElementById('acp-photo').files[0];
+    let photoUrl = "";
+    if (photoFile && _fbStorage) {
+        const ref = _fbStorage.ref('starts/' + Date.now());
+        await ref.put(photoFile);
+        photoUrl = await ref.getDownloadURL();
+    }
+
     startSession({
         sessionId: 'ACP-' + Date.now(),
         type: 'OD',
+        fecha: document.getElementById('acp-date').value,
+        turno: document.getElementById('acp-turno').value,
         name: document.getElementById('acp-supervisor').value,
         office: document.getElementById('acp-office').value,
         location: document.getElementById('acp-office').value,
-        startTime: Date.now()
+        startTime: Date.now(),
+        initialPhoto: photoUrl
     });
 });
 
 const startForm = document.getElementById('start-form');
-startForm?.addEventListener('submit', e => {
+startForm?.addEventListener('submit', async e => {
     e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = "Procesando...";
+
+    const photoFile = document.getElementById('main-photo').files[0];
+    let photoUrl = "";
+    if (photoFile && _fbStorage) {
+        const ref = _fbStorage.ref('starts/' + Date.now());
+        await ref.put(photoFile);
+        photoUrl = await ref.getDownloadURL();
+    }
+
     startSession({
         sessionId: 'LIMA-' + Date.now(),
         type: 'Sede',
+        fecha: document.getElementById('date').value,
+        turno: document.getElementById('turno').value,
         office: document.getElementById('office').value,
         name: document.getElementById('name').value,
         protestName: document.getElementById('protest-name').value,
         location: document.getElementById('location').value,
-        startTime: Date.now()
+        startTime: Date.now(),
+        initialPhoto: photoUrl
     });
 });
 
@@ -261,6 +292,8 @@ async function startSession(session) {
         console.warn("GPS inicial omitido/no disponible", e);
         session.startLat = -12.0464; // Lima default
         session.startLng = -77.0428;
+        session.currentLat = session.startLat;
+        session.currentLng = session.startLng;
     }
 
     activeSession = session;
@@ -269,7 +302,25 @@ async function startSession(session) {
     const sRef = fbRef('sessions/' + session.sessionId);
     if (sRef) await sRef.set({ ...session, status: 'active', lastUpdate: Date.now() });
     
-    syncWithCloud('start', session);
+    // Preparar datos para Google Sheets
+    const cloudData = {
+        fecha: session.fecha,
+        tipo_registro: session.type,
+        turno: session.turno,
+        oficina: session.office,
+        supervisor: session.name,
+        nombre_protesta: session.protestName || "N/A",
+        categoria: session.category || "General",
+        punto: session.location,
+        inicio: formatAMPM(new Date(session.startTime)),
+        lat_inicio: session.startLat,
+        lng_inicio: session.startLng,
+        mediaData: "", // Si quisiéramos enviar base64, pero ya tenemos la URL
+        archivo: session.initialPhoto || "",
+        sessionId: session.sessionId
+    };
+
+    syncWithCloud('start', cloudData);
     showActiveSession();
 }
 

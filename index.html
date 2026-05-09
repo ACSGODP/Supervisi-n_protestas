@@ -52,13 +52,44 @@
             <h2>Supervisión OD/MOD</h2>
             <form id="acp-form">
                 <div class="form-group">
+                    <label>Fecha de la Supervisión</label>
+                    <input type="date" id="acp-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Turno</label>
+                    <select id="acp-turno" required>
+                        <option value="" disabled selected>Selecciona turno...</option>
+                        <option value="Mañana">Mañana</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Noche">Noche</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Nombre del Comisionado</label>
                     <input type="text" id="acp-supervisor" placeholder="Tu nombre" required>
                 </div>
                 <div class="form-group">
                     <label>Oficina (OD/MOD)</label>
                     <input type="text" id="acp-office" list="acp-office-list" placeholder="Selecciona oficina..." required>
-                    <datalist id="acp-office-list"></datalist>
+                    <datalist id="acp-office-list">
+                        <option value="Lima">
+                        <option value="Callao">
+                        <option value="Arequipa">
+                        <option value="Cusco">
+                        <option value="Puno">
+                        <option value="Ayacucho">
+                        <option value="Huancavelica">
+                        <option value="Apurímac">
+                        <option value="Junín">
+                        <option value="La Libertad">
+                        <option value="Lambayeque">
+                        <option value="Piura">
+                        <option value="Loreto">
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label>Foto Inicial de Supervisión</label>
+                    <input type="file" id="acp-photo" accept="image/*" capture="environment" required>
                 </div>
                 <button type="submit" class="btn-primary">Iniciar Registro 🚀</button>
             </form>
@@ -69,16 +100,40 @@
             <h2>Supervisión Lima</h2>
             <form id="start-form">
                 <div class="form-group">
+                    <label>Fecha de la Supervisión</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label>Turno</label>
+                    <select id="turno" required>
+                        <option value="" disabled selected>Selecciona turno...</option>
+                        <option value="Mañana">Mañana</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Noche">Noche</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Oficina</label>
+                    <input type="text" id="office" value="Sede Central (Lima)" required>
+                </div>
+                <div class="form-group">
                     <label>Nombre del Comisionado</label>
                     <input type="text" id="name" placeholder="Tu nombre" required>
                 </div>
                 <div class="form-group">
                     <label>Nombre de la Protesta</label>
                     <input type="text" id="protest-name" list="protest-list-plan" placeholder="Colectivo o marcha..." required>
-                    <datalist id="protest-list-plan"></datalist>
+                    <datalist id="protest-list-plan">
+                        <option value="SUTEP">
+                        <option value="CGTP">
+                        <option value="Marcha contra el Gobierno">
+                        <option value="Movilización de Colectivos">
+                        <option value="Paro de Transportistas">
+                        <option value="Otros">
+                    </datalist>
                 </div>
                 <div class="form-group">
-                    <label>Categoría</label>
+                    <label>Categoría de Supervisión</label>
                     <select id="category" required>
                         <option value="" disabled selected>Selecciona...</option>
                         <option value="Espacio de movilización">Espacio de movilización</option>
@@ -89,7 +144,21 @@
                 <div class="form-group">
                     <label>Punto de Supervisión</label>
                     <input type="text" id="location" list="location-list" placeholder="Punto exacto..." required>
-                    <datalist id="location-list"></datalist>
+                    <datalist id="location-list">
+                        <option value="Congreso">
+                        <option value="Fiscalía">
+                        <option value="Parque Universitario">
+                        <option value="Plaza San Martín">
+                        <option value="Plaza Dos de Mayo">
+                        <option value="Plaza Manco Cápac">
+                        <option value="Alameda Paseo de los Héroes Navales">
+                        <option value="Óvalo Grau">
+                        <option value="Óvalo Bolognesi">
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label>Foto Inicial de Supervisión</label>
+                    <input type="file" id="main-photo" accept="image/*" capture="environment" required>
                 </div>
                 <button type="submit" class="btn-primary">Iniciar Supervisión 📍</button>
             </form>
