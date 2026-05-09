@@ -23,14 +23,15 @@ let allData = [];
 let map;
 let activeMarkers = {};
 
-// Inicialización
+function initDashboard() {
     // Set fecha de hoy por defecto en formato YYYY-MM-DD
     const today = new Date().toISOString().split('T')[0];
-    filterDate.value = today;
+    if (filterDate) filterDate.value = today;
 
     fetchData();
     initMap();
     listenToFirebaseGlobal();
+}
 
 function initMap() {
     map = L.map('map-dashboard').setView([-12.0464, -77.0428], 5); // Centro de Perú por defecto
@@ -88,7 +89,7 @@ window.openFullscreenImage = function(url) {
 
 const closeImageModalBtn = document.getElementById('close-image-modal');
 if (closeImageModalBtn) {
-    closeImageModalBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         const imageModal = document.getElementById('image-modal');
         if(imageModal) {
             imageModal.classList.add('hidden-modal');
@@ -142,10 +143,10 @@ function updateLiveFeed(sessionsData) {
     }).join('');
 }
 
-refreshBtn.addEventListener('click', fetchData);
-filterDate.addEventListener('change', renderDashboard);
-filterRegion.addEventListener('change', renderDashboard);
-filterProtest.addEventListener('change', renderDashboard);
+.addEventListener('click', fetchData);
+.addEventListener('change', renderDashboard);
+.addEventListener('change', renderDashboard);
+.addEventListener('change', renderDashboard);
 
 function generateSkeletonHTML() {
     return `
@@ -550,21 +551,21 @@ const newListItemInput = document.getElementById('new-list-item-input');
 const listTypeSelect = document.getElementById('list-type-select');
 
 if (manageListsBtn) {
-    manageListsBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         listsModal.style.display = 'flex';
         listsModal.classList.remove('hidden-modal');
     });
 }
 
 if (closeListsBtn) {
-    closeListsBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         listsModal.style.display = 'none';
         listsModal.classList.add('hidden-modal');
     });
 }
 
 if (addListItemBtn) {
-    addListItemBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         addListItem(listTypeSelect.value, newListItemInput);
     });
 }
@@ -606,7 +607,7 @@ async function addListItem(type, inputElement) {
 // --- GENERADOR DE REPORTE DOCS ---
 const generateDocBtn = document.getElementById('generate-doc-btn');
 if (generateDocBtn) {
-    generateDocBtn.addEventListener('click', async () => {
+    .addEventListener('click', async () => {
         const dateStr = filterDate.value || new Date().toISOString().split('T')[0];
         
         let filtered = allData.filter(item => {
@@ -695,3 +696,7 @@ if (generateDocBtn) {
 }
 
 
+
+
+// --- INICIO DEL DASHBOARD ---
+initDashboard();

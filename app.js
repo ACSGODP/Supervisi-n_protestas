@@ -335,8 +335,8 @@ function getGeoLocation() {
 }
 
 // Manejadores de Eventos
-choiceAcpBtn.addEventListener('click', showAcpForm);
-choicePlanBtn.addEventListener('click', showPlanForm);
+.addEventListener('click', showAcpForm);
+.addEventListener('click', showPlanForm);
 backBtns.forEach(btn => btn.addEventListener('click', showSelectionScreen));
 
 // Lógica de Desplegables Dinámicos (Sede Central)
@@ -363,7 +363,7 @@ const locationOptions = {
     ]
 };
 
-categorySelect.addEventListener('change', () => {
+.addEventListener('change', () => {
     const selectedCategory = categorySelect.value;
     const options = locationOptions[selectedCategory] || [];
 
@@ -431,7 +431,7 @@ function readFileAndCompress(file) {
 }
 
 // SUBMIT: Oficina Desconcentrada (OD)
-acpForm.addEventListener('submit', async (e) => {
+.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = acpForm.querySelector('button[type="submit"]');
     btn.textContent = "Procesando...";
@@ -489,7 +489,7 @@ acpForm.addEventListener('submit', async (e) => {
 });
 
 // SUBMIT: Sede Central
-startForm.addEventListener('submit', async (e) => {
+.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = startForm.querySelector('button[type="submit"]');
     btn.textContent = "Procesando...";
@@ -642,7 +642,7 @@ async function saveAndShowActive(isNew = false) {
 }
 
 // FINALIZAR
-finishBtn.addEventListener('click', async () => {
+.addEventListener('click', async () => {
     if (!confirm("¿Estás seguro de que deseas finalizar la supervisión actual? Esta acción no se puede deshacer.")) {
         return;
     }
@@ -702,7 +702,7 @@ function isWeekend(date) {
 // Admin y Dashboard
 const defensorLink = document.getElementById('defensor-link');
 if (defensorLink) {
-    defensorLink.addEventListener('click', () => {
+    .addEventListener('click', () => {
         const pass = prompt('Ingrese clave de administrador:');
         if (pass === ADMIN_PASSWORD) {
             window.location.href = 'defensor.html';
@@ -745,7 +745,7 @@ function renderHistory() {
     }).join('');
 }
 
-exportBtn.addEventListener('click', () => {
+.addEventListener('click', () => {
     if (history.length === 0) return alert('No hay datos para exportar');
 
     let csv = 'Fecha,Tipo,Turno,Oficina,Supervisor,Protesta,Categoría,Ubicación,Inicio,Fin,Lat_Ini,Lng_Ini,Lat_Fin,Lng_Fin,Duración,Archivo,Obs\n';
@@ -824,11 +824,11 @@ function openModal(mode) {
     if (typeof resetAudioUI === 'function') resetAudioUI();
 }
 
-addIncidentBtn.addEventListener('click', () => openModal('incidencia'));
+.addEventListener('click', () => openModal('incidencia'));
 if (addUpdateBtn) addUpdateBtn.addEventListener('click', () => openModal('actualizacion'));
 
 if (incidentClass) {
-    incidentClass.addEventListener('change', () => {
+    .addEventListener('change', () => {
         const val = incidentClass.value;
         if (val === 'Heridos' || val === 'Fallecidos' || val === 'Privados de la libertad') {
             incidentQtyGroup.classList.remove('hidden');
@@ -840,14 +840,14 @@ if (incidentClass) {
 }
 
 // Cerrar Modal
-cancelIncidentBtn.addEventListener('click', () => {
+.addEventListener('click', () => {
     incidentModal.classList.add('hidden-modal');
 });
 
 // Lógica manejada por setupDropzone
 
 // Guardar Incidencia
-saveIncidentBtn.addEventListener('click', async () => {
+.addEventListener('click', async () => {
     const desc = incidentDescInput.value.trim();
     if (!desc) {
         alert("Por favor describe lo que está pasando.");
@@ -993,7 +993,7 @@ function resetAudioUI() {
 }
 
 if (recordAudioBtn) {
-    recordAudioBtn.addEventListener('click', async () => {
+    .addEventListener('click', async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
@@ -1024,7 +1024,7 @@ if (recordAudioBtn) {
 }
 
 if (stopAudioBtn) {
-    stopAudioBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
             mediaRecorder.stream.getTracks().forEach(t => t.stop());
@@ -1050,7 +1050,7 @@ window.openFullscreenImage = function(url) {
 };
 
 if (closeImgBtn) {
-    closeImgBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         imageModalEl.classList.add('hidden-modal');
         imageModalEl.style.display = 'none';
     });
@@ -1062,7 +1062,7 @@ function enforceStrictDatalist(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    input.addEventListener('change', function () {
+    .addEventListener('change', function () {
         const val = this.value;
         const listId = this.getAttribute('list');
         const list = document.getElementById(listId);
@@ -1085,7 +1085,7 @@ function enforceStrictDatalist(inputId) {
     });
 
     // UX: Limpiar si el usuario borra todo
-    input.addEventListener('input', function () {
+    .addEventListener('input', function () {
         if (this.value === "") {
             this.setCustomValidity("");
         }
@@ -1110,7 +1110,7 @@ function setupDropzone(dropzoneId, inputId, contentId, previewId, nameId = null)
     if (!dropzone || !input) return;
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropzone.addEventListener(eventName, preventDefaults, false);
+        .addEventListener(eventName, preventDefaults, false);
     });
 
     function preventDefaults(e) {
@@ -1119,14 +1119,14 @@ function setupDropzone(dropzoneId, inputId, contentId, previewId, nameId = null)
     }
 
     ['dragenter', 'dragover'].forEach(eventName => {
-        dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+        .addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
-        dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+        .addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
     });
 
-    dropzone.addEventListener('drop', (e) => {
+    .addEventListener('drop', (e) => {
         let dt = e.dataTransfer;
         let files = dt.files;
         if (files.length > 0) {
@@ -1135,7 +1135,7 @@ function setupDropzone(dropzoneId, inputId, contentId, previewId, nameId = null)
         }
     });
 
-    input.addEventListener('change', function() {
+    .addEventListener('change', function() {
         if (this.files.length > 0) {
             handleFiles(this.files[0]);
         } else {
@@ -1211,13 +1211,13 @@ function openWaModal(session, classification, qty, desc, time) {
 }
 
 if (waCancelBtn) {
-    waCancelBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         waModal.classList.add('hidden-modal');
     });
 }
 
 if (waSendBtn) {
-    waSendBtn.addEventListener('click', () => {
+    .addEventListener('click', () => {
         const selectedIdx = waContactSelect.value;
         if (selectedIdx === "") {
             alert("Selecciona un contacto.");
@@ -1241,3 +1241,7 @@ if (waSendBtn) {
 
 
 
+
+
+// --- INICIO DE LA APLICACIÓN ---
+init();
