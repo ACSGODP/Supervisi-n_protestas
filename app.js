@@ -1,4 +1,4 @@
-
+﻿
 // Registro de Service Worker para PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -29,7 +29,6 @@ let audioTimerInterval = null;
 let audioSeconds = 0;
 
 
-document.addEventListener('DOMContentLoaded', function() {
 
 // Elementos del DOM
 const selectionSection = document.getElementById('selection-section');
@@ -1205,5 +1204,4 @@ if (waSendBtn) {
 }
 
 
-}); // END DOMContentLoaded
 

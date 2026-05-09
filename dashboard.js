@@ -3,7 +3,6 @@
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbz9GbqHfoAQarF5pv4da2jJDcSSTz7suco2O5SyaZ8X_4sJOTVbYZhiTrj0X501uECW/exec";
 
 
-document.addEventListener('DOMContentLoaded', function() {
 
 // Elementos
 const filterDate = document.getElementById('filter-date');
@@ -695,5 +694,4 @@ if (generateDocBtn) {
     });
 }
 
-}); // END DOMContentLoaded
 
