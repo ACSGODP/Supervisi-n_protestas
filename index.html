@@ -44,9 +44,17 @@
                     <p>Supervisión en puntos de movilización</p>
                 </div>
             </button>
+
+            <!-- CAJA DE HERRAMIENTAS (Plegable) -->
+            <details class="toolkit-section" style="margin-top:20px; background:white; border-radius:15px; padding:10px; box-shadow:var(--shadow);">
+                <summary style="cursor:pointer; font-weight:700; color:var(--primary); padding:5px;">📚 Documentos de Gestión</summary>
+                <div id="toolkit-list" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+                    <!-- Se llena con app.js -->
+                </div>
+            </details>
         </section>
 
-        <!-- SECCIÓN 2: FORMULARIOS (Ocultos inicialmente) -->
+        <!-- SECCIÓN 2: FORMULARIOS -->
         <section id="acp-section" class="card hidden">
             <button class="back-link" style="border:none; background:none; color:var(--primary); font-weight:700; cursor:pointer; margin-bottom:15px;">⬅️ Volver</button>
             <h2>Supervisión OD/MOD</h2>
@@ -59,9 +67,8 @@
                     <label>Turno</label>
                     <select id="acp-turno" required>
                         <option value="" disabled selected>Selecciona turno...</option>
-                        <option value="Mañana">Mañana</option>
-                        <option value="Tarde">Tarde</option>
-                        <option value="Noche">Noche</option>
+                        <option value="1er turno">1er turno</option>
+                        <option value="2do turno">2do turno</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -70,22 +77,38 @@
                 </div>
                 <div class="form-group">
                     <label>Oficina (OD/MOD)</label>
-                    <input type="text" id="acp-office" list="acp-office-list" placeholder="Selecciona oficina..." required>
-                    <datalist id="acp-office-list">
-                        <option value="Lima">
-                        <option value="Callao">
-                        <option value="Arequipa">
-                        <option value="Cusco">
-                        <option value="Puno">
-                        <option value="Ayacucho">
-                        <option value="Huancavelica">
-                        <option value="Apurímac">
-                        <option value="Junín">
-                        <option value="La Libertad">
-                        <option value="Lambayeque">
-                        <option value="Piura">
-                        <option value="Loreto">
-                    </datalist>
+                    <select id="acp-office" required>
+                        <option value="" disabled selected>Selecciona oficina...</option>
+                        <option value="Amazonas">Amazonas</option>
+                        <option value="Áncash (Huaraz)">Áncash (Huaraz)</option>
+                        <option value="Áncash (Chimbote)">Áncash (Chimbote)</option>
+                        <option value="Apurímac">Apurímac</option>
+                        <option value="Arequipa">Arequipa</option>
+                        <option value="Ayacucho">Ayacucho</option>
+                        <option value="Cajamarca">Cajamarca</option>
+                        <option value="Callao">Callao</option>
+                        <option value="Cusco">Cusco</option>
+                        <option value="Huancavelica">Huancavelica</option>
+                        <option value="Huánuco">Huánuco</option>
+                        <option value="Ica">Ica</option>
+                        <option value="Junín">Junín</option>
+                        <option value="La Libertad">La Libertad</option>
+                        <option value="Lambayeque">Lambayeque</option>
+                        <option value="Lima">Lima</option>
+                        <option value="Lima Este">Lima Este</option>
+                        <option value="Lima Norte">Lima Norte</option>
+                        <option value="Lima Sur">Lima Sur</option>
+                        <option value="Loreto">Loreto</option>
+                        <option value="Madre de Dios">Madre de Dios</option>
+                        <option value="Moquegua">Moquegua</option>
+                        <option value="Pasco">Pasco</option>
+                        <option value="Piura">Piura</option>
+                        <option value="Puno">Puno</option>
+                        <option value="San Martín">San Martín</option>
+                        <option value="Tacna">Tacna</option>
+                        <option value="Tumbes">Tumbes</option>
+                        <option value="Ucayali">Ucayali</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Foto Inicial de Supervisión</label>
@@ -107,14 +130,19 @@
                     <label>Turno</label>
                     <select id="turno" required>
                         <option value="" disabled selected>Selecciona turno...</option>
-                        <option value="Mañana">Mañana</option>
-                        <option value="Tarde">Tarde</option>
-                        <option value="Noche">Noche</option>
+                        <option value="1er turno">1er turno</option>
+                        <option value="2do turno">2do turno</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Oficina</label>
-                    <input type="text" id="office" value="Sede Central (Lima)" required>
+                    <select id="office" required>
+                        <option value="Sede Central (Lima)" selected>Sede Central (Lima)</option>
+                        <option value="Lima Este">Lima Este</option>
+                        <option value="Lima Norte">Lima Norte</option>
+                        <option value="Lima Sur">Lima Sur</option>
+                        <option value="Callao">Callao</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Nombre del Comisionado</label>
@@ -139,6 +167,7 @@
                         <option value="Espacio de movilización">Espacio de movilización</option>
                         <option value="Dependencia policial / Seguridad del Estado">Dependencia policial</option>
                         <option value="Establecimiento de salud">Establecimiento de salud</option>
+                        <option value="Cámara">Cámara</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -171,7 +200,7 @@
                 <div id="timer" style="font-family:monospace; font-size:1.2rem;">00:00:00</div>
             </div>
             
-            <div id="minimapa-comisionado" style="height: 180px; width: 100%;"></div>
+            <div id="minimapa-comisionado" style="height: 250px; width: 100%;"></div>
             
             <div style="padding:15px;">
                 <p style="font-size:0.9rem; margin-bottom:5px;"><strong>Punto:</strong> <span id="display-location"></span></p>
@@ -180,11 +209,12 @@
 
             <div style="padding:15px; border-top:1px solid #eee;">
                 <button id="add-incident-btn" class="btn-primary" style="background:#f39c12; margin-bottom:10px;">🚨 Reportar Incidencia</button>
-                <button id="add-update-btn" class="btn-primary" style="background:#3498db;">📝 Enviar Actualización</button>
+                <button id="add-update-btn" class="btn-primary" style="background:#3498db; margin-bottom:10px;">📝 Enviar Actualización</button>
+                <button id="view-docs-btn" class="btn-primary" style="background:#2c3e50; font-size:0.9rem;">📄 Ver Lineamientos</button>
             </div>
 
             <div id="incidents-timeline" class="timeline-container" style="height:350px;">
-                <!-- Feed dinámico -->
+                <!-- Feed dinámico Estilo WhatsApp -->
             </div>
 
             <button id="finish-btn" class="btn-primary" style="background:#e74c3c; border-radius:0; margin-top:10px;">Finalizar Supervisión</button>
@@ -234,6 +264,16 @@
                 <button id="cancel-incident-btn" class="btn-primary" style="background:#95a5a6;">Cancelar</button>
                 <button id="save-incident-btn" class="btn-primary">Enviar ➡️</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL DOCUMENTOS -->
+    <div id="docs-modal" class="modal hidden-modal">
+        <div class="modal-content">
+            <h3>Documentos de Gestión</h3>
+            <p style="margin-bottom:15px; color:#666;">Selecciona un documento para abrirlo:</p>
+            <div id="modal-docs-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
+            <button id="close-docs-btn" class="btn-primary" style="background:#95a5a6;">Cerrar</button>
         </div>
     </div>
 

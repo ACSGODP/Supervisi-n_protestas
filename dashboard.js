@@ -4,14 +4,106 @@ function fbRef(path) { return _fbDb ? _fbDb.ref(path) : null; }
 
 let map;
 let markers = {};
+let currentSessionsRef = null;
+const GOOGLE_WEBHOOK_URL = ''; // Se completa después
 
 // --- INICIALIZACIÓN ---
 function initDashboard() {
     initMap();
-    listenToSessions();
     
+    const filterDate = document.getElementById('filter-date');
+    filterDate.value = new Date().toISOString().split('T')[0];
+    
+    // Escuchar cambios en el calendario
+    filterDate.addEventListener('change', () => {
+        listenToSessions(filterDate.value);
+    });
+
     document.getElementById('refresh-btn')?.addEventListener('click', () => location.reload());
-    document.getElementById('filter-date').value = new Date().toISOString().split('T')[0];
+    
+    // Timeline
+    document.getElementById('timeline-btn')?.addEventListener('click', generarLineaTiempo);
+    document.getElementById('close-timeline-btn')?.addEventListener('click', () => {
+        document.getElementById('timeline-modal').classList.add('hidden-modal');
+    });
+    document.getElementById('copy-timeline-btn')?.addEventListener('click', () => {
+        const text = document.getElementById('timeline-content').innerText;
+        navigator.clipboard.writeText(text).then(() => alert("Línea de tiempo copiada al portapapeles."));
+    });
+
+    // Sync BI
+    document.getElementById('sync-gsheets-btn')?.addEventListener('click', exportarAGoogleSheets);
+
+    // Carga inicial
+    listenToSessions(filterDate.value);
+}
+
+function generarLineaTiempo() {
+    const sessions = latestSessions;
+    if (!sessions || Object.keys(sessions).length === 0) return alert("No hay datos para la línea de tiempo.");
+
+    let allIncidents = [];
+    Object.values(sessions).forEach(s => {
+        if (s.incidents) {
+            Object.values(s.incidents).forEach(inc => {
+                allIncidents.push({
+                    ...inc,
+                    location: s.location,
+                    supervisor: s.name
+                });
+            });
+        }
+    });
+
+    allIncidents.sort((a,b) => a.timestamp - b.timestamp);
+
+    const timelineText = allIncidents.map(inc => {
+        const time = new Date(inc.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `[${time}] - ${inc.location}: ${inc.clasificacion} - ${inc.description} (${inc.supervisor})`;
+    }).join('\n\n');
+
+    document.getElementById('timeline-content').innerText = timelineText || "No hay incidencias reportadas para esta fecha.";
+    document.getElementById('timeline-modal').classList.remove('hidden-modal');
+}
+
+async function exportarAGoogleSheets() {
+    if (!GOOGLE_WEBHOOK_URL) return alert("Error: GOOGLE_WEBHOOK_URL no configurada.");
+    
+    const sessions = latestSessions;
+    if (!sessions || Object.keys(sessions).length === 0) return alert("No hay datos para exportar.");
+
+    const btn = document.getElementById('sync-gsheets-btn');
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Sincronizando... ⏳";
+
+    const dataPayload = Object.values(sessions).map(s => ({
+        fecha: s.fecha,
+        comisionado: s.name,
+        oficina: s.office,
+        protesta: s.protestName || "OD/MOD",
+        punto: s.location,
+        hora_inicio: formatTime(s.startTime),
+        hora_fin: s.endTime ? formatTime(s.endTime) : "En curso",
+        status: s.status === 'finished' ? 'Finalizado' : 'Activo'
+    }));
+
+    try {
+        const res = await fetch(GOOGLE_WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'sync_bi', data: dataPayload })
+        });
+        
+        alert("Sincronización exitosa con Google Sheets (BI Pipeline) ✅");
+    } catch (e) {
+        console.error(e);
+        alert("Error al sincronizar: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
 }
 
 function initMap() {
@@ -23,18 +115,46 @@ function initMap() {
     }).addTo(map);
 }
 
-function listenToSessions() {
+function listenToSessions(selectedDate) {
     if (!_fbDb) return;
     
-    fbRef('sessions').on('value', snap => {
+    // Limpiar listener previo si existe
+    if (currentSessionsRef) currentSessionsRef.off();
+    
+    // Limpiar UI actual
+    clearDashboard();
+    
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'block';
+
+    // CONSULTA FILTRADA POR FECHA
+    currentSessionsRef = fbRef('sessions').orderByChild('fecha').equalTo(selectedDate);
+    
+    currentSessionsRef.on('value', snap => {
         const sessions = snap.val() || {};
-        const loadingEl = document.getElementById('loading');
         if (loadingEl) loadingEl.style.display = 'none';
         
         updateStatsAndMap(sessions);
         updateReportsList(sessions);
         updateGlobalFeed(sessions);
     });
+}
+
+function clearDashboard() {
+    // Limpiar marcadores
+    Object.values(markers).forEach(m => map.removeLayer(m));
+    markers = {};
+    
+    // Limpiar listas
+    document.getElementById('reports-list').innerHTML = "";
+    document.getElementById('global-feed').innerHTML = "";
+    
+    // Reset stats
+    safeSetText('stat-active', '0');
+    safeSetText('stat-incidents', '0');
+    safeSetText('stat-heridos', '0');
+    safeSetText('stat-fallecidos', '0');
+    safeSetText('stat-detenidos', '0');
 }
 
 function updateStatsAndMap(sessions) {
@@ -44,9 +164,16 @@ function updateStatsAndMap(sessions) {
     let fallecidos = 0;
     let detenidos = 0;
 
-    const sessionIds = Object.keys(sessions);
+    // Eliminar marcadores que ya no están en la consulta
+    const activeIds = Object.keys(sessions);
+    Object.keys(markers).forEach(id => {
+        if (!activeIds.includes(id)) {
+            map.removeLayer(markers[id]);
+            delete markers[id];
+        }
+    });
 
-    sessionIds.forEach(id => {
+    activeIds.forEach(id => {
         const s = sessions[id];
         if (s.status !== 'finished') active++;
 
@@ -78,8 +205,22 @@ function updateStatsAndMap(sessions) {
 function updateMarker(id, s, lat, lng) {
     if (!map) return;
     
-    const iconColor = s.status === 'finished' ? '#95a5a6' : '#3498db';
-    const customIcon = L.divIcon({
+    // Verificar alertas para el marcador
+    let hasAlert = false;
+    if (s.incidents) {
+        const lastInc = Object.values(s.incidents).sort((a,b) => b.timestamp - a.timestamp)[0];
+        if (lastInc && ['Heridos', 'Fallecidos', 'Privados de la libertad'].includes(lastInc.clasificacion)) {
+            hasAlert = true;
+        }
+    }
+
+    const iconColor = s.status === 'finished' ? '#95a5a6' : '#27ae60';
+    const customIcon = hasAlert ? L.divIcon({
+        html: '🚨',
+        className: 'alert-marker',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    }) : L.divIcon({
         className: 'custom-icon',
         html: '<div style="background:' + iconColor + '; width:15px; height:15px; border-radius:50%; border:3px solid white; box-shadow:0 0 5px rgba(0,0,0,0.3);"></div>',
         iconSize: [15, 15],
@@ -88,17 +229,20 @@ function updateMarker(id, s, lat, lng) {
 
     if (markers[id]) {
         markers[id].setLatLng([lat, lng]);
+        markers[id].setIcon(customIcon);
     } else {
         markers[id] = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-        markers[id].bindTooltip(s.name, {
-            permanent: true,
+        markers[id].bindTooltip(s.name + " (" + s.office + ")", {
             direction: 'top',
             className: 'waze-tooltip'
         });
     }
 }
 
+let latestSessions = {}; // Guardar sesiones para cálculos rápidos
+
 function updateReportsList(sessions) {
+    latestSessions = sessions;
     const list = document.getElementById('reports-list');
     if (!list) return;
 
@@ -106,14 +250,60 @@ function updateReportsList(sessions) {
     
     list.innerHTML = sorted.map(s => {
         const isFinished = s.status === 'finished';
-        return '<div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:10px; border-left:5px solid ' + (isFinished ? '#95a5a6' : '#3498db') + '; box-shadow:0 2px 5px rgba(0,0,0,0.05);">' +
-            '<div style="display:flex; justify-content:space-between;">' +
-            '<strong>' + (s.location || 'N/A') + '</strong>' +
-            '<span style="font-size:0.8rem; color:#666;">' + new Date(s.startTime).toLocaleTimeString() + '</span>' +
+        const reportCount = s.incidents ? Object.keys(s.incidents).length : 0;
+        const pName = s.protestName || 'Sin protesta asignada';
+        
+        return '<div class="supervision-card" onclick="toggleProtestStats(this, \'' + pName + '\')" style="background:#fff; padding:15px; border-radius:12px; margin-bottom:12px; border-left:5px solid ' + (isFinished ? '#95a5a6' : '#27ae60') + '; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
+            '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">' +
+            '<div>' +
+            '<span class="badge-status ' + (isFinished ? 'badge-finished' : 'badge-active') + '">' + (isFinished ? 'Finalizado' : 'Activo') + '</span>' +
+            '<div style="font-weight:800; font-size:1.05rem; margin-top:5px; color:var(--primary);">' + (s.location || 'N/A') + '</div>' +
             '</div>' +
-            '<p style="margin:5px 0; font-size:0.9rem;">' + s.name + ' (' + s.office + ')</p>' +
+            '<span style="font-size:0.75rem; color:#999; font-weight:600;">' + formatTime(s.startTime) + '</span>' +
+            '</div>' +
+            '<div style="font-size:0.9rem; color:#555; margin-bottom:10px;">' +
+                '<strong>' + s.name + '</strong> (' + s.office + ')<br>' +
+                '<span style="color:var(--accent); font-size:0.8rem;">📍 ' + pName + '</span>' +
+            '</div>' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f0f0f0; padding-top:8px;">' +
+                '<span class="report-counter">🔔 ' + reportCount + ' reportes</span>' +
+                '<span style="font-size:0.7rem; color:#aaa;">Click para ver marcha 🔽</span>' +
+            '</div>' +
+            '<!-- PANEL EXPANDIBLE -->' +
+            '<div class="protest-stats-panel">' +
+                '<h4 style="font-size:0.8rem; margin-bottom:8px; color:var(--primary);">Resumen de esta Marcha:</h4>' +
+                '<div class="stats-row"><span>👥 Total Asignados:</span><span class="total-asignados">-</span></div>' +
+                '<div class="stats-row"><span style="color:var(--success);">🟢 Activos:</span><span class="activos-protesta">-</span></div>' +
+                '<div class="stats-row"><span style="color:#95a5a6;">🔴 Finalizados:</span><span class="finalizados-protesta">-</span></div>' +
+            '</div>' +
             '</div>';
-    }).join('') || '<p style="text-align:center; padding:20px;">No hay reportes hoy.</p>';
+    }).join('') || '<p style="text-align:center; padding:20px;">No hay reportes para esta fecha.</p>';
+}
+
+function toggleProtestStats(card, protestName) {
+    const panel = card.querySelector('.protest-stats-panel');
+    const isExpanded = panel.classList.contains('expanded');
+
+    // Cerrar otros paneles abiertos (opcional, pero mejora limpieza)
+    document.querySelectorAll('.protest-stats-panel.expanded').forEach(p => {
+        if (p !== panel) p.classList.remove('expanded');
+    });
+
+    if (!isExpanded) {
+        // Calcular estadísticas de la protesta
+        const group = Object.values(latestSessions).filter(s => (s.protestName || 'Sin protesta asignada') === protestName);
+        const total = group.length;
+        const activos = group.filter(s => s.status !== 'finished').length;
+        const finalizados = group.filter(s => s.status === 'finished').length;
+
+        panel.querySelector('.total-asignados').textContent = total;
+        panel.querySelector('.activos-protesta').textContent = activos;
+        panel.querySelector('.finalizados-protesta').textContent = finalizados;
+        
+        panel.classList.add('expanded');
+    } else {
+        panel.classList.remove('expanded');
+    }
 }
 
 function updateGlobalFeed(sessions) {
@@ -124,7 +314,7 @@ function updateGlobalFeed(sessions) {
     Object.values(sessions).forEach(s => {
         if (s.incidents) {
             Object.values(s.incidents).forEach(inc => {
-                feedItems.push({ ...inc, sessionLocation: s.location });
+                feedItems.push({ ...inc, sessionLocation: s.location, protestRoom: s.protestName });
             });
         }
     });
@@ -132,15 +322,15 @@ function updateGlobalFeed(sessions) {
     feedItems.sort((a,b) => b.timestamp - a.timestamp);
 
     feed.innerHTML = feedItems.map(inc => {
-        return '<div class="chat-bubble chat-others" style="margin-bottom:10px; width:100%; max-width:100%; border-radius:8px;">' +
-            '<div class="chat-author">' + inc.author + ' en ' + inc.sessionLocation + '</div>' +
+        return '<div class="chat-bubble chat-others" style="margin-bottom:12px; width:100%; max-width:100%; border-radius:8px;">' +
+            '<div class="chat-author">' + inc.author + ' en ' + inc.sessionLocation + ' (' + (inc.protestRoom || 'OD') + ')</div>' +
             '<div style="font-weight:700; margin:5px 0; color:' + getIncidentColor(inc.clasificacion) + ';">' + inc.clasificacion + '</div>' +
             '<div>' + inc.description + '</div>' +
             (inc.imageUrl ? '<img src="' + inc.imageUrl + '" style="width:100%; border-radius:8px; margin-top:10px; cursor:pointer;" onclick="window.open(\'' + inc.imageUrl + '\')">' : '') +
             (inc.audioUrl ? '<audio controls src="' + inc.audioUrl + '" style="width:100%; height:30px; margin-top:10px;"></audio>' : '') +
             '<div class="chat-time">' + new Date(inc.timestamp).toLocaleTimeString() + '</div>' +
             '</div>';
-    }).join('') || '<p style="text-align:center; padding:20px; color:#999;">Esperando incidencias...</p>';
+    }).join('') || '<p style="text-align:center; padding:20px; color:#999;">Esperando incidencias para esta fecha...</p>';
 }
 
 function getIncidentColor(cls) {
@@ -150,6 +340,11 @@ function getIncidentColor(cls) {
         case 'Privados de la libertad': return '#8e44ad';
         default: return '#3498db';
     }
+}
+
+function formatTime(ts) {
+    if (!ts) return "";
+    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function safeSetText(id, text) {

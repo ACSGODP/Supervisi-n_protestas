@@ -116,3 +116,71 @@ input:focus { border-color: var(--primary); outline: none; }
 @media (max-width: 900px) {
     .dashboard-grid { grid-template-columns: 1fr; }
 }
+
+/* === ANIMACIONES PARA ALERTAS === */
+@keyframes parpadeo {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.alert-marker {
+    background: #e74c3c;
+    border: 3px solid white;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
+    animation: parpadeo 1s infinite;
+}
+
+/* === BADGES DASHBOARD === */
+.badge-status {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.badge-active { background: #27ae60; color: white; }
+.badge-finished { background: #95a5a6; color: white; }
+.report-counter {
+    font-size: 0.8rem;
+    color: var(--primary);
+    background: rgba(0,51,102,0.1);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* === ACORDEÓN DE ESTADÍSTICAS === */
+.protest-stats-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+.protest-stats-panel.expanded {
+    max-height: 200px;
+    padding: 12px;
+    border: 1px dashed #ddd;
+}
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+.supervision-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.supervision-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1) !important;
+}

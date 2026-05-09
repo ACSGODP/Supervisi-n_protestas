@@ -9,6 +9,7 @@ let timerInterval = null;
 let locationWatchId = null;
 let minimap = null;
 let minimapMarker = null;
+let otherMarkers = {}; // Almacena marcadores de otros comisionados { sessionId: marker }
 
 // Firebase Safety
 const _fbDb = (typeof _db !== "undefined") ? _db : null;
@@ -56,6 +57,29 @@ function showSection(id) {
     else document.getElementById('history-section')?.classList.add('hidden');
 }
 
+function showAcpForm() { showSection('acp-section'); }
+function showPlanForm() { showSection('start-section'); }
+
+// --- DOCUMENTOS DE GESTIÓN ---
+const documentosGestion = [
+    { titulo: 'Lineamientos de Supervisión', url: '#' },
+    { titulo: 'Cartilla de Derechos', url: '#' },
+    { titulo: 'Protocolo de Intervención', url: '#' }
+];
+
+function renderToolkit() {
+    const list = document.getElementById('toolkit-list');
+    const modalList = document.getElementById('modal-docs-list');
+    if (!list) return;
+
+    const html = documentosGestion.map(doc => 
+        `<a href="${doc.url}" target="_blank" style="text-decoration:none; color:var(--primary); font-size:0.9rem; padding:8px; background:#f0f2f5; border-radius:8px;">📄 ${doc.titulo}</a>`
+    ).join('');
+
+    list.innerHTML = html;
+    if (modalList) modalList.innerHTML = html;
+}
+
 // --- INICIALIZACIÓN ---
 function init() {
     activeSession = JSON.parse(localStorage.getItem('dp_active_session'));
@@ -68,18 +92,29 @@ function init() {
     if (dateAcp) dateAcp.value = new Date().toISOString().split('T')[0];
 
     // Listeners
-    document.getElementById('choice-acp')?.addEventListener('click', () => showSection('acp-section'));
-    document.getElementById('choice-plan')?.addEventListener('click', () => showSection('start-section'));
+    document.getElementById('choice-acp')?.addEventListener('click', showAcpForm);
+    document.getElementById('choice-plan')?.addEventListener('click', showPlanForm);
     document.querySelectorAll('.back-link').forEach(btn => btn.addEventListener('click', () => showSection('selection-section')));
     document.getElementById('export-btn')?.addEventListener('click', exportData);
 
+    // Docs Modal
+    document.getElementById('view-docs-btn')?.addEventListener('click', () => {
+        document.getElementById('docs-modal').classList.remove('hidden-modal');
+    });
+    document.getElementById('close-docs-btn')?.addEventListener('click', () => {
+        document.getElementById('docs-modal').classList.add('hidden-modal');
+    });
+
+    renderToolkit();
+    
     // Datalists dinámicos
     const categorySelect = document.getElementById('category');
     const locationDatalist = document.getElementById('location-list');
     const locationOptions = {
         'Espacio de movilización': ["Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"],
         'Establecimiento de salud': ["Hospital Arzobispo Loayza", "Hospital Dos de Mayo", "Hospital Almenara", "Hospital Rebagliati", "Hospital de Emergencias Pediátricas"],
-        'Dependencia policial / Seguridad del Estado': ["Comisaría de Cotabambas", "Comisaría de Alfonso Ugarte", "Comisaría de Petit Thouars", "DIRCOTE", "DIRINCRI", "DINOES"]
+        'Dependencia policial / Seguridad del Estado': ["Comisaría de Cotabambas", "Comisaría de Alfonso Ugarte", "Comisaría de Petit Thouars", "DIRCOTE", "DIRINCRI", "DINOES"],
+        'Cámara': ["Centro de Monitoreo - Lima Central", "Cámara Municipalidad de Lima", "Cámara PNP"]
     };
 
     categorySelect?.addEventListener('change', () => {
@@ -123,6 +158,7 @@ function showActiveSession() {
     startTimer(activeSession.startTime);
     listenSharedFeed();
     startLocationTracking();
+    syncOtherCommissioners(); // Multiplayer Map
 }
 
 function initMinimap() {
@@ -131,21 +167,82 @@ function initMinimap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(minimap);
     
     minimapMarker = L.marker([-12.0464, -77.0428]).addTo(minimap);
-    minimapMarker.bindTooltip(activeSession.name, {
+    minimapMarker.bindTooltip("Tú: " + activeSession.name, {
         permanent: true,
         direction: 'top',
         className: 'waze-tooltip'
     });
 }
 
+function syncOtherCommissioners() {
+    const sessionsRef = fbRef('sessions');
+    if (!sessionsRef || !activeSession.protestName) return;
+
+    sessionsRef.on('value', snap => {
+        const data = snap.val();
+        if (!data) return;
+
+        Object.keys(data).forEach(sid => {
+            if (sid === activeSession.sessionId) return; 
+
+            const s = data[sid];
+            // AISLAMIENTO ESTRICTO POR PROTESTA
+            const isSameProtest = (s.protestName === activeSession.protestName) && (s.protestName !== undefined);
+            const isActive = s.status === 'active';
+
+            if (isSameProtest && isActive && s.currentLat && s.currentLng) {
+                updateOtherMarker(sid, s);
+            } else {
+                removeOtherMarker(sid);
+            }
+        });
+    });
+}
+
+function updateOtherMarker(sid, s) {
+    const latlng = [s.currentLat, s.currentLng];
+    
+    // Verificar si hay incidencias críticas para cambiar el icono
+    let hasCritical = false;
+    if (s.incidents) {
+        const lastInc = Object.values(s.incidents).sort((a,b) => b.timestamp - a.timestamp)[0];
+        if (lastInc && ['Heridos', 'Fallecidos', 'Privados de la libertad'].includes(lastInc.clasificacion)) {
+            hasCritical = true;
+        }
+    }
+
+    const icon = hasCritical ? L.divIcon({
+        html: '🚨',
+        className: 'alert-marker',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+    }) : L.divIcon({
+        html: '🔵',
+        className: 'waze-marker', // Podemos definir esto en CSS o usar Leaflet default
+        iconSize: [25, 25],
+        iconAnchor: [12, 12]
+    });
+
+    if (otherMarkers[sid]) {
+        otherMarkers[sid].setLatLng(latlng);
+        otherMarkers[sid].setIcon(icon);
+    } else {
+        otherMarkers[sid] = L.marker(latlng, { icon: icon }).addTo(minimap);
+        otherMarkers[sid].bindTooltip(s.name + " (" + s.office + ")", { direction: 'top' });
+    }
+}
+
+function removeOtherMarker(sid) {
+    if (otherMarkers[sid]) {
+        minimap.removeLayer(otherMarkers[sid]);
+        delete otherMarkers[sid];
+    }
+}
+
 function startLocationTracking() {
     if (!navigator.geolocation) return;
     
-    const geoOptions = {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
-    };
+    const geoOptions = { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 };
 
     locationWatchId = navigator.geolocation.watchPosition(pos => {
         const lat = pos.coords.latitude;
@@ -185,7 +282,8 @@ function listenSharedFeed() {
     if (feedRef) {
         feedRef.on('value', snap => {
             const data = snap.val();
-            const list = data ? Object.values(data).sort((a,b) => b.timestamp - a.timestamp) : [];
+            // Ordenamos cronológicamente (más antiguo primero) para que al insertar aparezca abajo
+            const list = data ? Object.values(data).sort((a,b) => a.timestamp - b.timestamp) : [];
             renderTimeline(list);
         });
     }
@@ -211,6 +309,9 @@ function renderTimeline(list) {
             '<div class="chat-time">' + timeStr + '</div>' +
             '</div>';
     }).join('') || '<p style="text-align:center; padding:40px; color:#999;">Esperando incidencias...</p>';
+
+    // AUTO-SCROLL AL FINAL (WhatsApp Style)
+    container.scrollTop = container.scrollHeight;
 }
 
 function getIncidentColor(cls) {
@@ -222,7 +323,6 @@ function getIncidentColor(cls) {
     }
 }
 
-// --- FORM HANDLERS ---
 // --- FORM HANDLERS ---
 const acpForm = document.getElementById('acp-form');
 acpForm?.addEventListener('submit', async e => {
@@ -289,8 +389,8 @@ async function startSession(session) {
         session.currentLat = session.startLat;
         session.currentLng = session.startLng;
     } catch(e) { 
-        console.warn("GPS inicial omitido/no disponible", e);
-        session.startLat = -12.0464; // Lima default
+        console.warn("GPS inicial omitido", e);
+        session.startLat = -12.0464;
         session.startLng = -77.0428;
         session.currentLat = session.startLat;
         session.currentLng = session.startLng;
@@ -302,7 +402,6 @@ async function startSession(session) {
     const sRef = fbRef('sessions/' + session.sessionId);
     if (sRef) await sRef.set({ ...session, status: 'active', lastUpdate: Date.now() });
     
-    // Preparar datos para Google Sheets
     const cloudData = {
         fecha: session.fecha,
         tipo_registro: session.type,
@@ -315,7 +414,7 @@ async function startSession(session) {
         inicio: formatAMPM(new Date(session.startTime)),
         lat_inicio: session.startLat,
         lng_inicio: session.startLng,
-        mediaData: "", // Si quisiéramos enviar base64, pero ya tenemos la URL
+        mediaData: "",
         archivo: session.initialPhoto || "",
         sessionId: session.sessionId
     };
@@ -351,7 +450,6 @@ saveIncidentBtn?.addEventListener('click', async () => {
     saveIncidentBtn.disabled = true;
     saveIncidentBtn.textContent = "Enviando...";
 
-    // Formatear descripción final: Categoría (Cantidad) - Descripción
     const finalDesc = category + (qty ? ' (' + qty + ')' : '') + ' - ' + rawDesc;
 
     const inc = {
@@ -364,12 +462,6 @@ saveIncidentBtn?.addEventListener('click', async () => {
     };
 
     try {
-        // GPS de respaldo para la incidencia
-        try {
-            const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{timeout:3000}));
-            inc.lat = pos.coords.latitude;
-            inc.lng = pos.coords.longitude;
-        } catch(e) { inc.locationStatus = 'Ubicación aprox. (GPS débil)'; }
         const photo = document.getElementById('incident-photo').files[0];
         if (photo && _fbStorage) {
             const ref = _fbStorage.ref('incidents/' + activeSession.sessionId + '/' + Date.now());

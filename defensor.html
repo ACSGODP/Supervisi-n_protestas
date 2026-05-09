@@ -31,6 +31,8 @@
             <div style="display:flex; gap:10px;">
                 <input type="date" id="filter-date" style="padding:5px; border-radius:5px; border:none;">
                 <button id="refresh-btn" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">Actualizar 🔄</button>
+                <button id="timeline-btn" style="background:#34495e; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">⏱️ Línea Tiempo</button>
+                <button id="sync-gsheets-btn" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:700;">🔄 Sincronizar BI</button>
             </div>
         </div>
     </header>
@@ -50,21 +52,33 @@
             <div id="map-dashboard"></div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 400px; gap: 20px; margin-top: 20px;">
-            <!-- Reportes -->
-            <div class="card">
-                <h2 id="list-title">Supervisiones Hoy</h2>
-                <div id="loading" style="text-align:center; padding:50px; font-weight:700;">Cargando datos... ⏳</div>
-                <div id="reports-list"></div>
-            </div>
-
-            <!-- Feed -->
-            <div class="feed-card">
+        <div style="display: grid; grid-template-columns: 1fr 350px; gap: 20px; margin-top: 20px;">
+            <!-- Feed (IZQUIERDA) -->
+            <div class="feed-card" style="height: 800px;">
                 <div class="feed-header">📡 Feed en Tiempo Real</div>
                 <div id="global-feed"></div>
             </div>
+
+            <!-- Supervisiones (DERECHA) -->
+            <div class="card" style="height: 800px; overflow-y: auto;">
+                <h2 id="list-title" style="font-size: 1.2rem;">Supervisiones Hoy</h2>
+                <div id="loading" style="text-align:center; padding:50px; font-weight:700;">Cargando datos... ⏳</div>
+                <div id="reports-list"></div>
+            </div>
         </div>
     </main>
+
+    <!-- MODAL LÍNEA DE TIEMPO -->
+    <div id="timeline-modal" class="modal hidden-modal">
+        <div class="modal-content" style="max-width: 800px; height: 80vh; display: flex; flex-direction: column;">
+            <h3>Línea de Tiempo del Día</h3>
+            <div id="timeline-content" style="flex: 1; overflow-y: auto; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 0.9rem; white-space: pre-wrap; margin: 15px 0;"></div>
+            <div style="display:flex; gap:10px;">
+                <button id="copy-timeline-btn" class="btn-primary" style="background:var(--accent);">📋 Copiar Texto</button>
+                <button id="close-timeline-btn" class="btn-primary" style="background:#95a5a6;">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
