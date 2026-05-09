@@ -1,7 +1,9 @@
-import { app, database, ref, onValue, get } from './firebase-config.js';
-
+﻿
 // Configuración
 const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbz9GbqHfoAQarF5pv4da2jJDcSSTz7suco2O5SyaZ8X_4sJOTVbYZhiTrj0X501uECW/exec";
+
+
+document.addEventListener('DOMContentLoaded', function() {
 
 // Elementos
 const filterDate = document.getElementById('filter-date');
@@ -23,7 +25,6 @@ let map;
 let activeMarkers = {};
 
 // Inicialización
-document.addEventListener('DOMContentLoaded', () => {
     // Set fecha de hoy por defecto en formato YYYY-MM-DD
     const today = new Date().toISOString().split('T')[0];
     filterDate.value = today;
@@ -31,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchData();
     initMap();
     listenToFirebaseGlobal();
-});
 
 function initMap() {
     map = L.map('map-dashboard').setView([-12.0464, -77.0428], 5); // Centro de Perú por defecto
@@ -41,8 +41,8 @@ function initMap() {
 }
 
 function listenToFirebaseGlobal() {
-    const sessionsRef = ref(database, 'sessions');
-    onValue(sessionsRef, (snapshot) => {
+    const sessionsRef = _db.ref('sessions');
+    sessionsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
             updateLiveMap(data);
@@ -694,3 +694,6 @@ if (generateDocBtn) {
         }
     });
 }
+
+}); // END DOMContentLoaded
+

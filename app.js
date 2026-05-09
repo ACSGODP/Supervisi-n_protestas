@@ -1,4 +1,3 @@
-import { app, database, storage, ref, set, onValue, push, update, get, storageRef, uploadBytes, getDownloadURL } from './firebase-config.js';
 
 // Registro de Service Worker para PWA
 if ('serviceWorker' in navigator) {
@@ -28,6 +27,9 @@ let audioChunks = [];
 let audioBlob = null;
 let audioTimerInterval = null;
 let audioSeconds = 0;
+
+
+document.addEventListener('DOMContentLoaded', function() {
 
 // Elementos del DOM
 const selectionSection = document.getElementById('selection-section');
@@ -221,7 +223,7 @@ function startLocationTracking() {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             if (activeSession && activeSession.sessionId) {
-                set(ref(database, 'sessions/' + activeSession.sessionId + '/currentLocation'), {
+                _db.ref('sessions/' + activeSession.sessionId + '/currentLocation').set({
                     lat: lat,
                     lng: lng,
                     timestamp: Date.now()
@@ -242,8 +244,8 @@ function stopLocationTracking() {
 
 function listenToFirebaseIncidents() {
     if (!activeSession || !activeSession.sessionId) return;
-    const incidentsRef = ref(database, 'sessions/' + activeSession.sessionId + '/incidents');
-    onValue(incidentsRef, (snapshot) => {
+    const incidentsRef = _db.ref('sessions/' + activeSession.sessionId + '/incidents');
+    incidentsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
             const incidentsArray = Object.keys(data).map(key => ({
@@ -585,7 +587,7 @@ async function saveAndShowActive(isNew = false) {
     if (isNew) {
         // Guardar sesi\u00f3n en Firebase Realtime Database
         try {
-            await set(ref(database, 'sessions/' + activeSession.sessionId), {
+            await _db.ref('sessions/' + activeSession.sessionId).set({
                 supervisor: activeSession.name,
                 office: activeSession.office,
                 type: activeSession.type,
@@ -632,7 +634,7 @@ finishBtn.addEventListener('click', async () => {
 
     // Actualizar Firebase: marcar como finalizada
     try {
-        await update(ref(database, 'sessions/' + entry.sessionId), {
+        await _db.ref('sessions/' + entry.sessionId).update({
             status: 'finished',
             endTime: endTime,
             endGeo: geo || null
@@ -864,24 +866,23 @@ saveIncidentBtn.addEventListener('click', async () => {
         // Subir imagen a Firebase Storage (si hay)
         if (file) {
             saveIncidentBtn.textContent = 'Subiendo imagen...';
-            const imgRef = storageRef(storage, `incidents/${activeSession.sessionId}/${newIncident.timestamp}_${file.name}`);
-            await uploadBytes(imgRef, file);
-            newIncident.imageUrl = await getDownloadURL(imgRef);
+            const imgRef = _storage.ref( `incidents/${activeSession.sessionId}/${newIncident.timestamp}_${file.name}`);
+            await imgRef.put(file);
+            newIncident.imageUrl = await imgRef.getDownloadURL();
         }
 
         // Subir audio a Firebase Storage (si hay)
         if (typeof audioBlob !== 'undefined' && audioBlob) {
             saveIncidentBtn.textContent = 'Subiendo audio...';
             const ext = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
-            const audRef = storageRef(storage, `incidents/${activeSession.sessionId}/${newIncident.timestamp}_audio.${ext}`);
-            await uploadBytes(audRef, audioBlob);
-            newIncident.audioUrl = await getDownloadURL(audRef);
+            const audRef = _storage.ref( `incidents/${activeSession.sessionId}/${newIncident.timestamp}_audio.${ext}`);
+            await audRef.put(audioBlob);
+            newIncident.audioUrl = await audRef.getDownloadURL();
         }
 
         // Guardar en Firebase Realtime Database
         saveIncidentBtn.textContent = 'Guardando...';
-        const incidentRef = push(ref(database, `sessions/${activeSession.sessionId}/incidents`));
-        await set(incidentRef, newIncident);
+        await _db.ref('sessions/' + activeSession.sessionId + '/incidents').push(newIncident);
         console.log('Incidencia guardada en Firebase.');
 
         // Sincronizar con Google Sheets (en paralelo, no bloqueante)
@@ -1056,12 +1057,12 @@ function enforceStrictDatalist(inputId) {
     });
 }
 
+
 // Aplicar reglas estrictas al iniciar
-document.addEventListener('DOMContentLoaded', () => {
-    enforceStrictDatalist('location');      // Punto de Supervisión
-    enforceStrictDatalist('protest-name');  // Nombre de Protesta (Lima)
-    enforceStrictDatalist('acp-office');    // OD/MOD (Provincias)
-});
+enforceStrictDatalist('location');
+enforceStrictDatalist('protest-name');
+enforceStrictDatalist('acp-office');
+
 
 // --- L�"GICA DE DRAG & DROP ---
 function setupDropzone(dropzoneId, inputId, contentId, previewId, nameId = null) {
@@ -1202,4 +1203,7 @@ if (waSendBtn) {
         waModal.classList.add('hidden-modal');
     });
 }
+
+
+}); // END DOMContentLoaded
 

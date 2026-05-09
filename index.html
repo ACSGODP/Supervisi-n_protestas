@@ -19,6 +19,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Firebase Compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
 </head>
 
 <body>
@@ -442,7 +448,7 @@
         <img class="modal-content" id="full-image" style="max-width: 90%; max-height: 90vh; border-radius: 0; background: transparent; padding: 0;">
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script src="app.js"></script>
     <div style="text-align: center; font-size: 0.8rem; color: #666; padding: 10px;">
         v3.0 - Híbrido Firebase
     </div>
