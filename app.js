@@ -1,20 +1,18 @@
-﻿// === CAPTURA DE ERRORES GLOBAL ===
-window.onerror = function(msg, src, line, col, err) {
-    console.error(err);
-    return false;
-};
-
 // === FUNCIONES GLOBALES ===
 const ADMIN_PASSWORD = "Defensoria2026";
 
 function adminLogin() {
-    var pass = prompt("Ingrese clave de administrador:");
-    if (pass === null) return;
+    const pass = prompt("Ingrese clave de administrador:");
     if (pass === ADMIN_PASSWORD) {
         window.location.href = "defensor.html";
-    } else {
+    } else if (pass !== null) {
         alert("Clave incorrecta.");
     }
+}
+
+function safeSetText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
 }
 
 // Firebase Safety
@@ -37,15 +35,8 @@ let locationWatchId = null;
 let mediaRecorder;
 let audioChunks = [];
 let audioBlob = null;
-let audioTimerInterval = null;
-let audioSeconds = 0;
 
-function safeSetText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-}
-
-// Elementos DOM
+// DOM Elements
 const selectionSection = document.getElementById('selection-section');
 const acpSection = document.getElementById('acp-section');
 const startSection = document.getElementById('start-section');
@@ -61,12 +52,13 @@ const startForm = document.getElementById('start-form');
 const finishBtn = document.getElementById('finish-btn');
 const timerDisplay = document.getElementById('timer');
 const historyList = document.getElementById('history-list');
+const exportBtn = document.getElementById('export-btn');
 
 const categorySelect = document.getElementById('category');
 const locationInput = document.getElementById('location');
 const locationDatalist = document.getElementById('location-list');
 
-// Listas de Lugares (Base)
+// Location Base Options
 const locationOptions = {
     'Espacio de movilización': ["Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"],
     'Establecimiento de salud': ["Hospital Arzobispo Loayza", "Hospital Dos de Mayo", "Hospital Almenara", "Hospital Rebagliati", "Hospital de Emergencias Pediátricas"],
@@ -74,24 +66,23 @@ const locationOptions = {
     'Videovigilancia': ["Cámaras Municipalidad de Lima", "Cámaras videovigilancia Miraflores", "Centro de Control de Tránsito"]
 };
 
-// Inicialización
+// Initialization
 function init() {
     activeSession = JSON.parse(localStorage.getItem('dp_active_session'));
     history = JSON.parse(localStorage.getItem('dp_history')) || [];
 
     fetchDynamicLists();
 
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    const now = new Date();
-    const localDate = now.toISOString().split('T')[0];
-    dateInputs.forEach(input => { input.value = localDate; });
+    const dateInput = document.getElementById('date');
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
-    // Listeners de Navegación
+    // Navigation Listeners
     choiceAcpBtn?.addEventListener('click', showAcpForm);
     choicePlanBtn?.addEventListener('click', showPlanForm);
     backBtns.forEach(btn => btn?.addEventListener('click', showSelectionScreen));
+    exportBtn?.addEventListener('click', exportData);
 
-    // Lógica de Desplegables
+    // Dropdown Logic
     categorySelect?.addEventListener('change', () => {
         const cat = categorySelect.value;
         locationDatalist.innerHTML = "";
@@ -105,13 +96,11 @@ function init() {
     });
 
     if (activeSession) {
-        syncWithCloud('start', session);
-    showActiveSession();
+        showActiveSession();
     } else {
         showSelectionScreen();
     }
     renderHistory();
-    exportBtn?.addEventListener('click', exportData);
 }
 
 async function fetchDynamicLists() {
@@ -132,10 +121,10 @@ async function fetchDynamicLists() {
                 }
             }
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Error fetching lists", e); }
 }
 
-// --- NAVEGACIÓN ---
+// Navigation Functions
 function showSelectionScreen() {
     [acpSection, startSection, activeSection].forEach(s => s?.classList.add('hidden'));
     selectionSection?.classList.remove('hidden');
@@ -176,7 +165,7 @@ function showActiveSession() {
     startLocationTracking();
 }
 
-// --- LÓGICA CORE ---
+// Timer & GPS
 function startTimer(startTime) {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
@@ -184,7 +173,7 @@ function startTimer(startTime) {
         const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
         const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
         const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-        if (timerDisplay) timerDisplay.textContent = `${h}:${m}:${s}`;
+        if (timerDisplay) timerDisplay.textContent = h + ":" + m + ":" + s;
     }, 1000);
 }
 
@@ -192,14 +181,14 @@ function startLocationTracking() {
     if ("geolocation" in navigator) {
         locationWatchId = navigator.geolocation.watchPosition(pos => {
             const _locRef = fbRef('sessions/' + activeSession.sessionId + '/currentLocation');
-            if (_locRef) if (_locRef) _locRef.set({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: Date.now() });
+            if (_locRef) _locRef.set({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: Date.now() });
         }, null, { enableHighAccuracy: true });
     }
 }
 
+// Form Handlers
 acpForm?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const fd = new FormData(acpForm);
     saveAndStart({
         sessionId: 'ACP-' + Date.now(),
         type: 'OD',
@@ -213,7 +202,6 @@ acpForm?.addEventListener('submit', (e) => {
 
 startForm?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const fd = new FormData(startForm);
     saveAndStart({
         sessionId: 'LIMA-' + Date.now(),
         type: 'Sede',
@@ -232,7 +220,7 @@ async function saveAndStart(session) {
             navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 });
         });
         session.startGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    } catch (e) { console.warn("GPS inicial falló", e); }
+    } catch (e) { console.warn("GPS failed", e); }
 
     activeSession = session;
     localStorage.setItem('dp_active_session', JSON.stringify(session));
@@ -251,42 +239,16 @@ finishBtn?.addEventListener('click', async () => {
     
     history.unshift(activeSession);
     localStorage.setItem('dp_history', JSON.stringify(history.slice(0, 50)));
-    syncWithCloud('finish', activeSession);
     localStorage.removeItem('dp_active_session');
     
     const _sRef = fbRef('sessions/' + activeSession.sessionId);
-    if (_sRef) await _sRef.update({ endTime, duration: activeSession.duration, status: 'finished' });
+    if (_sRef) await _sRef.update({ endTime: endTime, duration: activeSession.duration, status: 'finished' });
     
+    syncWithCloud('finish', activeSession);
     location.reload();
 });
 
-// --- INCIDENCIAS ---
-function listenToFirebaseIncidents() {
-    const iRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
-    if (iRef) {
-        iRef.on('value', snap => {
-            const val = snap.val();
-            activeSession.incidents = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })).sort((a,b) => a.timestamp - b.timestamp) : [];
-            renderTimeline();
-        });
-    }
-}
-
-function renderTimeline() {
-    const container = document.getElementById('incidents-timeline');
-    if (!container) return;
-    container.innerHTML = (activeSession.incidents || []).map(inc => `
-        <div class="chat-bubble chat-mine">
-            <div class="chat-author">${inc.author}</div>
-            <div class="timeline-desc"><strong>${inc.clasificacion}</strong> ${inc.cantidad ? `(${inc.cantidad})` : ''} - ${inc.description}</div>
-            ${inc.imageUrl ? `<img src="${inc.imageUrl}" class="chat-img" onclick="window.open('${inc.imageUrl}')">` : ''}
-            ${inc.audioUrl ? `<audio controls src="${inc.audioUrl}" class="chat-audio"></audio>` : ''}
-            <div class="chat-time">${inc.time}</div>
-        </div>
-    `).join('') || '<p style="text-align:center;color:#888;margin-top:20px;">Sin registros aún.</p>';
-    container.scrollTop = container.scrollHeight;
-}
-
+// Incidents
 const incidentModal = document.getElementById('incident-modal');
 const saveIncidentBtn = document.getElementById('save-incident-btn');
 
@@ -298,6 +260,8 @@ window.openModal = function(mode) {
     document.getElementById('incident-time').value = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
 };
 
+document.getElementById('add-incident-btn')?.addEventListener('click', () => openModal('incidencia'));
+document.getElementById('add-update-btn')?.addEventListener('click', () => openModal('actualizacion'));
 document.getElementById('cancel-incident-btn')?.addEventListener('click', () => incidentModal?.classList.add('hidden-modal'));
 
 saveIncidentBtn?.addEventListener('click', async () => {
@@ -319,26 +283,85 @@ saveIncidentBtn?.addEventListener('click', async () => {
     try {
         const photo = document.getElementById('incident-photo').files[0];
         if (photo && _fbStorage) {
-            const ref = _fbStorage.ref(`incidents/${activeSession.sessionId}/${Date.now()}_${photo.name}`);
+            const ref = _fbStorage.ref('incidents/' + activeSession.sessionId + '/' + Date.now() + '_' + photo.name);
             await ref.put(photo);
             newInc.imageUrl = await ref.getDownloadURL();
         }
         if (audioBlob && _fbStorage) {
-            const ref = _fbStorage.ref(`incidents/${activeSession.sessionId}/${Date.now()}_audio.webm`);
+            const ref = _fbStorage.ref('incidents/' + activeSession.sessionId + '/' + Date.now() + '_audio.webm');
             await ref.put(audioBlob);
             newInc.audioUrl = await ref.getDownloadURL();
         }
         const iRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
         if (iRef) await iRef.push(newInc);
         syncWithCloud('incident', activeSession, { incident: newInc });
+        
+        if (['Heridos', 'Fallecidos', 'Privados de la libertad', 'Uso desmedido de la fuerza'].includes(newInc.clasificacion)) {
+            openWaModal(newInc);
+        }
+        
         incidentModal.classList.add('hidden-modal');
         resetAudioUI();
-        if (['Heridos', 'Fallecidos', 'Privados de la libertad', 'Uso desmedido de la fuerza'].includes(newInc.clasificacion)) { openWaModal(newInc); }
     } catch (e) { alert(e.message); }
     finally {
         saveIncidentBtn.disabled = false;
         saveIncidentBtn.textContent = "Guardar";
     }
+});
+
+function listenToFirebaseIncidents() {
+    const iRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
+    if (iRef) {
+        iRef.on('value', snap => {
+            const val = snap.val();
+            activeSession.incidents = val ? Object.keys(val).map(k => ({ id: k, ...val[k] })).sort((a,b) => a.timestamp - b.timestamp) : [];
+            renderTimeline();
+        });
+    }
+}
+
+function renderTimeline() {
+    const container = document.getElementById('incidents-timeline');
+    if (!container) return;
+    container.innerHTML = (activeSession.incidents || []).map(inc => {
+        return '<div class="chat-bubble chat-mine">' +
+            '<div class="chat-author">' + inc.author + '</div>' +
+            '<div class="timeline-desc"><strong>' + inc.clasificacion + '</strong> ' + (inc.cantidad ? '(' + inc.cantidad + ')' : '') + ' - ' + inc.description + '</div>' +
+            (inc.imageUrl ? '<img src="' + inc.imageUrl + '" class="chat-img" onclick="window.open(\'' + inc.imageUrl + '\')">' : '') +
+            (inc.audioUrl ? '<audio controls src="' + inc.audioUrl + '" class="chat-audio"></audio>' : '') +
+            '<div class="chat-time">' + inc.time + '</div>' +
+            '</div>';
+    }).join('') || '<p style="text-align:center;color:#888;margin-top:20px;">Sin registros aún.</p>';
+    container.scrollTop = container.scrollHeight;
+}
+
+// WhatsApp
+const waModal = document.getElementById('wa-modal');
+const waContactSelect = document.getElementById('wa-contact-select');
+let currentWaData = null;
+
+function openWaModal(inc) {
+    if (!waModal || !waContactSelect) return;
+    waContactSelect.innerHTML = '<option value="" disabled selected>Selecciona contacto...</option>';
+    waContacts.forEach((c, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = c.nombre + " (" + c.cargo + ")";
+        waContactSelect.appendChild(opt);
+    });
+    currentWaData = inc;
+    waModal.classList.remove('hidden-modal');
+}
+
+document.getElementById('wa-cancel-btn')?.addEventListener('click', () => waModal.classList.add('hidden-modal'));
+document.getElementById('wa-send-btn')?.addEventListener('click', () => {
+    const idx = waContactSelect.value;
+    if (idx === "") return alert("Selecciona contacto");
+    const c = waContacts[idx];
+    const msg = "ALERTA: " + currentWaData.clasificacion + "\nLugar: " + activeSession.location + "\nHora: " + currentWaData.time + "\nDetalle: " + currentWaData.description;
+    const phone = c.numero.toString().replace(/\D/g,'');
+    window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(msg), '_blank');
+    waModal.classList.add('hidden-modal');
 });
 
 // Audio
@@ -352,8 +375,9 @@ recordAudioBtn?.addEventListener('click', async () => {
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
     mediaRecorder.onstop = () => {
         audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        document.getElementById('audio-preview').src = URL.createObjectURL(audioBlob);
-        document.getElementById('audio-preview').classList.remove('hidden');
+        const preview = document.getElementById('audio-preview');
+        preview.src = URL.createObjectURL(audioBlob);
+        preview.classList.remove('hidden');
     };
     mediaRecorder.start();
     recordAudioBtn.classList.add('hidden');
@@ -371,47 +395,7 @@ function resetAudioUI() {
     document.getElementById('audio-preview').classList.add('hidden');
 }
 
-function renderHistory() {
-    if (!historyList) return;
-    historyList.innerHTML = history.length ? history.map(item => `
-        <div class="history-item">
-            <strong>${item.location}</strong> - ${item.date || new Date(item.startTime).toLocaleDateString()}<br>
-            ${item.name} (${item.office})
-        </div>
-    `).join('') : '<p class="empty-msg">No hay registros previos.</p>';
-}
-
-// Drag & Drop
-function setupDropzone(dropzoneId, inputId, contentId, previewId) {
-    const dz = document.getElementById(dropzoneId);
-    const input = document.getElementById(inputId);
-    const content = document.getElementById(contentId);
-    const preview = document.getElementById(previewId);
-    if (!dz || !input) return;
-    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-    dz.addEventListener('drop', e => {
-        e.preventDefault();
-        dz.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
-            input.files = e.dataTransfer.files;
-            handleFile(e.dataTransfer.files[0]);
-        }
-    });
-    input.addEventListener('change', () => { if (input.files[0]) handleFile(input.files[0]); });
-    function handleFile(file) {
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; content.style.display = 'none'; };
-            reader.readAsDataURL(file);
-        }
-    }
-}
-setupDropzone('dropzone-sede', 'media', 'dropzone-content-sede', 'preview-sede');
-setupDropzone('dropzone-incident', 'incident-photo', 'dropzone-content-incident', 'preview-incident');
-
-
-// --- SINCRONIZACIÓN Y EXPORTACIÓN ---
+// Sync & Export
 async function syncWithCloud(type, session, extra = {}) {
     if (!GOOGLE_SHEETS_URL) return;
     const payload = {
@@ -422,7 +406,7 @@ async function syncWithCloud(type, session, extra = {}) {
         office: session.office,
         location: session.location,
         timestamp: Date.now(),
-        ...extra
+        extra: extra
     };
     try {
         await fetch(GOOGLE_SHEETS_URL, {
@@ -431,14 +415,14 @@ async function syncWithCloud(type, session, extra = {}) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-    } catch (e) { console.error("Error sync cloud", e); }
+    } catch (e) { console.error("Sync error", e); }
 }
 
 function exportData() {
     if (history.length === 0) return alert("No hay datos");
-    let csv = 'Fecha,Tipo,Oficina,Comisionado,Ubicación,Inicio,Fin,Duración\n';
+    let csv = "Fecha,Tipo,Oficina,Comisionado,Ubicacion,Inicio,Fin,Duracion\n";
     history.forEach(h => {
-        csv += \,\,\,\,\,\,\,\\n;
+        csv += (h.date || "") + "," + h.type + "," + h.office + "," + h.name + "," + h.location + "," + new Date(h.startTime).toLocaleTimeString() + "," + new Date(h.endTime).toLocaleTimeString() + "," + (h.duration/3600000).toFixed(2) + "\n";
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -448,42 +432,14 @@ function exportData() {
     a.click();
 }
 
-async function readFileAndCompress(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve({ base64: e.target.result, name: file.name, type: file.type });
-        reader.readAsDataURL(file);
-    });
+function renderHistory() {
+    if (!historyList) return;
+    historyList.innerHTML = history.length ? history.map(item => {
+        return '<div class="history-item">' +
+            '<strong>' + item.location + '</strong> - ' + (item.date || new Date(item.startTime).toLocaleDateString()) + '<br>' +
+            item.name + ' (' + item.office + ')' +
+            '</div>';
+    }).join('') : '<p class="empty-msg">No hay registros previos.</p>';
 }
-
-
-// --- WHATSAPP MODAL ---
-const waModal = document.getElementById('wa-modal');
-const waContactSelect = document.getElementById('wa-contact-select');
-let currentWaData = null;
-
-function openWaModal(inc) {
-    if (!waModal || !waContactSelect) return;
-    waContactSelect.innerHTML = '<option value="" disabled selected>Selecciona contacto...</option>';
-    waContacts.forEach((c, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = \ (\);
-        waContactSelect.appendChild(opt);
-    });
-    currentWaData = inc;
-    waModal.classList.remove('hidden-modal');
-}
-
-document.getElementById('wa-cancel-btn')?.addEventListener('click', () => waModal.classList.add('hidden-modal'));
-document.getElementById('wa-send-btn')?.addEventListener('click', () => {
-    const idx = waContactSelect.value;
-    if (idx === "") return alert("Selecciona contacto");
-    const c = waContacts[idx];
-    const msg = ALERTA: \\nLugar: \\nHora: \\nDetalle: \;
-    const phone = c.numero.toString().replace(/\D/g,'');
-    window.open(https://wa.me/\?text=\, '_blank');
-    waModal.classList.add('hidden-modal');
-});
 
 init();

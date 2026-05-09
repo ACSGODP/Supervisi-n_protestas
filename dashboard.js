@@ -24,7 +24,6 @@ function initDashboard() {
     
     initMap();
     listenToFirebaseGlobal();
-    fetchData();
 }
 
 function initMap() {
@@ -47,7 +46,7 @@ function listenToFirebaseGlobal() {
 }
 
 async function fetchData() {
-    // Aquí podrías cargar datos históricos de Google Sheets
+    // Aquí podrías cargar datos históricos de Google Sheets si fuera necesario
 }
 
 function updateDashboard(sessions) {
@@ -64,19 +63,17 @@ function updateDashboard(sessions) {
 
     // List
     reportsList.innerHTML = sessionsArr.sort((a,b) => (b.startTime || 0) - (a.startTime || 0)).map(s => {
-        const status = s.status === 'finished' ? 'Finalizada' : 'En curso';
+        const statusStr = s.status === 'finished' ? 'Finalizada' : 'En curso';
         const badgeClass = s.status === 'finished' ? 'badge-finished' : 'badge-active';
-        const title = s.location || s.protestName || 'Supervisión';
-        const subtitle = `${s.name || 'Comisionado'} - ${s.office || 'Sede'}`;
+        const titleText = s.location || s.protestName || 'Supervisión';
+        const subtitleText = (s.name || 'Comisionado') + " - " + (s.office || 'Sede');
         
-        return `
-            <div class="report-card">
-                <h3>${title}</h3>
-                <p><strong>${subtitle}</strong></p>
-                <p>Tipo: ${s.type || 'N/A'}</p>
-                <p>Status: <span class="badge ${badgeClass}">${status}</span></p>
-            </div>
-        `;
+        return '<div class="report-card">' +
+            '<h3>' + titleText + '</h3>' +
+            '<p><strong>' + subtitleText + '</strong></p>' +
+            '<p>Tipo: ' + (s.type || 'N/A') + '</p>' +
+            '<p>Status: <span class="badge ' + badgeClass + '">' + statusStr + '</span></p>' +
+            '</div>';
     }).join('');
 }
 

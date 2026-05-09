@@ -1,67 +1,55 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DefensorÃ­a del Pueblo - Registro de SupervisiÃ³n</title>
+    <title>Defensoría del Pueblo - Registro de Supervisión</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="DP SupervisiÃ³n">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <!-- Firebase Compat SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
-    <!-- Firebase Config -->
-    <script src="firebase-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <header>
+    <header class="main-header">
         <div class="header-content">
-            <div class="logo">
-                <img src="logo.png" alt="Logo DefensorÃ­a" class="header-logo">
-                <span>DEFENSORÃA DEL PUEBLO</span>
+            <div class="logo-area">
+                <img src="logo.png" alt="Logo Defensoría" class="header-logo">
+                <span>DEFENSORÍA DEL PUEBLO</span>
             </div>
-            <div class="badge">AdjuntÃ­a para la PrevenciÃ³n de Conflictos Sociales y la Gobernabilidad</div>
+            <div class="header-info">
+                <span>Adjuntía para la Prevención de Conflictos Sociales y la Gobernabilidad</span>
+            </div>
             <button id="defensor-link" class="admin-link" onclick="adminLogin()">Administrador 🔒</button>
         </div>
     </header>
 
-    <main id="app">
-        <!-- Pantalla de SelecciÃ³n Inicial -->
-        <section id="selection-section" class="card">
-            <h2>Â¿Desde dÃ³nde supervisas hoy?</h2>
-            <div class="selection-grid">
+    <main class="container">
+        <!-- Selección de Tipo de Supervisión -->
+        <section id="selection-section" class="selection-grid">
+            <h2 class="full-width">¿Desde dónde supervisas hoy?</h2>
+            <div class="selection-card-wrapper">
                 <button id="choice-acp" class="selection-card" onclick="showAcpForm()">
-                    <span class="icon">ðŸ¢</span>
-                    <span class="label">Oficina desconcentrada</span>
-                    <span class="desc">Registro de supervisiÃ³n en OD/MOD</span>
+                    <div class="card-icon">🏢</div>
+                    <h3>Oficina desconcentrada</h3>
+                    <p>Registro de supervisión en OD/MOD</p>
                 </button>
+            </div>
+            <div class="selection-card-wrapper">
                 <button id="choice-plan" class="selection-card" onclick="showPlanForm()">
-                    <span class="icon">ðŸ›ï¸</span>
-                    <span class="label">Lima</span>
-                    <span class="desc">Oficina Principal / Sede Central</span>
+                    <div class="card-icon">📍</div>
+                    <h3>Lima</h3>
+                    <p>Oficina Principal / Sede Central</p>
                 </button>
             </div>
         </section>
 
-        <!-- Formulario OD (Antes ACP) -->
+        <!-- Formulario OD/MOD -->
         <section id="acp-section" class="card hidden">
             <div class="section-header">
-                <button class="back-link">â† Volver</button>
-                <h2>SupervisiÃ³n en Oficina Desconcentrada</h2>
+                <button class="back-link">⬅️ Volver</button>
+                <h2>Supervisión en Oficina Desconcentrada</h2>
             </div>
             <form id="acp-form">
                 <div class="form-group">
@@ -70,198 +58,35 @@
                 </div>
                 <div class="form-group">
                     <label for="acp-office">OD/MOD</label>
-                    <input type="text" id="acp-office" list="acp-office-list" placeholder="Escribe para buscar..."
-                        required>
+                    <input type="text" id="acp-office" list="acp-office-list" placeholder="Escribe para buscar..." required>
                     <datalist id="acp-office-list">
-                        <option value="OD Amazonas">
-                        <option value="OD Ãncash">
-                        <option value="OD ApurÃ­mac">
-                        <option value="OD Arequipa">
-                        <option value="OD Ayacucho">
-                        <option value="OD Cajamarca">
-                        <option value="OD Callao">
-                        <option value="OD Cusco">
-                        <option value="OD HuÃ¡nuco">
-                        <option value="OD Huancavelica">
-                        <option value="OD Ica">
-                        <option value="OD JunÃ­n">
-                        <option value="OD La Libertad">
-                        <option value="OD Lambayeque">
-                        <option value="OD Loreto">
-                        <option value="OD Lima">
-                        <option value="OD Lima Este">
-                        <option value="OD Lima Norte">
-                        <option value="OD Lima Sur">
-                        <option value="OD Lima Provincias">
-                        <option value="OD Madre de Dios">
-                        <option value="OD Moquegua">
-                        <option value="OD Pasco">
-                        <option value="OD Piura">
-                        <option value="OD Puno">
-                        <option value="OD San MartÃ­n">
-                        <option value="OD Tacna">
-                        <option value="OD Tumbes">
-                        <option value="OD Ucayali">
-                        <option value="MOD Atalaya">
-                        <option value="MOD Purus">
-                        <option value="MOD Andahuaylas">
-                        <option value="OD Chimbote">
-                        <option value="MOD Huanta">
-                        <option value="MOD JaÃ©n">
-                        <option value="MOD Juliaca">
-                        <option value="MOD La Merced">
-                        <option value="MOD Satipo">
-                        <option value="OD Tarapoto">
-                        <option value="MOD La ConvenciÃ³n">
-                        <option value="OD Tingo MarÃ­a">
-                        <option value="MOD Pichari">
-                        <option value="MOD Puquio">
-                        <option value="MOD Desaguadero">
-                        <option value="MOD Aguas Verdes">
+                        <option value="OD Amazonas"><option value="OD Áncash"><option value="OD Apurímac"><option value="OD Arequipa"><option value="OD Ayacucho">
+                        <option value="OD Cajamarca"><option value="OD Callao"><option value="OD Cusco"><option value="OD Huánuco"><option value="OD Huancavelica">
+                        <option value="OD Ica"><option value="OD Junín"><option value="OD La Libertad"><option value="OD Lambayeque"><option value="OD Loreto">
+                        <option value="OD Lima"><option value="OD Lima Este"><option value="OD Lima Norte"><option value="OD Lima Sur"><option value="OD Lima Provincias">
+                        <option value="OD Madre de Dios"><option value="OD Moquegua"><option value="OD Pasco"><option value="OD Piura"><option value="OD Puno">
+                        <option value="OD San Martín"><option value="OD Tacna"><option value="OD Tumbes"><option value="OD Ucayali">
+                        <option value="MOD Chimbote"><option value="MOD Huacho"><option value="MOD Jaén"><option value="MOD Juliaca"><option value="MOD La Merced">
+                        <option value="MOD Puquio"><option value="MOD Tarapoto"><option value="MOD Tingo María">
                     </datalist>
                 </div>
-                <div class="form-group">
-                    <label for="acp-date">Fecha de la SupervisiÃ³n</label>
-                    <input type="date" id="acp-date" readonly required>
-                </div>
-                <div class="form-group">
-                    <label for="acp-categor📷>CategorÃ­a de SupervisiÃ³n</label>
-                    <select id="acp-categor📷 required>
-                        <option value="" disabled selected>Selecciona categorÃ­a...</option>
-                        <option value="Espacio de movilizaciÃ³n">Espacio de movilizaciÃ³n</option>
-                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del
-                            Estado</option>
-                        <option value="Establecimiento de salud">Establecimiento de salud</option>
-                        <option value="Videovigilancia">Videovigilancia</option>
-                        <option value="Otro">Otro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="acp-location">Punto de SupervisiÃ³n</label>
-                    <input type="text" id="acp-location" placeholder="Escribe el punto..." required>
-                </div>
-                <div class="form-group full-width">
-                    <label>Foto o Video (Opcional)</label>
-                    <div class="dropzone" id="dropzone-acp">
-                        <input type="file" id="acp-media" accept="image/*,video/*">
-                        <div class="dropzone-content" id="dropzone-content-acp">
-                            <div class="dropzone-icon">ðŸ“·</div>
-                            <div class="dropzone-text">Arrastra tu archivo aquÃ­ o haz clic para seleccionar</div>
-                        </div>
-                        <img src="" alt="Preview" class="dropzone-preview" id="preview-acp">
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label for="acp-observations">Observaciones / Comentarios</label>
-                    <textarea id="acp-observations" rows="3" placeholder="Detalles adicionales..."></textarea>
-                </div>
-                <div class="form-group full-width">
-                    <p class="geo-hint" style="color: #666; font-size: 0.9em; margin-bottom: 10px;">ðŸ“ La ubicaciÃ³n se
-                        registrarÃ¡ automÃ¡ticamente al iniciar.</p>
-                </div>
-                <button type="submit" class="btn-primary📷>Registrar e Iniciar</button>
+                <button type="submit" class="btn-primary">Registrar e Iniciar</button>
             </form>
         </section>
 
-        <!-- Formulario Sede Central (Antes Plan) -->
+        <!-- Formulario Sede Central (Lima) -->
         <section id="start-section" class="card hidden">
             <div class="section-header">
-                <button class="back-link">â† Volver</button>
-                <h2>SupervisiÃ³n Lima</h2>
+                <button class="back-link">⬅️ Volver</button>
+                <h2>Supervisión Lima</h2>
             </div>
             <form id="start-form">
                 <div class="form-group">
-                    <label for="shift">Turno</label>
-                    <select id="shift" required>
-                        <option value="" disabled selected>Selecciona turno...</option>
-                        <option value="1er Turno">1er Turno</option>
-                        <option value="2do Turno">2do Turno</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="office">Oficina / AdjuntÃ­a / Sede</label>
-                    <input type="text" id="office" list="office-list" placeholder="Escribe para buscar oficina..."
-                        required>
+                    <label for="office">Oficina / Adjuntía / Sede</label>
+                    <input type="text" id="office" list="office-list" placeholder="Escribe para buscar oficina..." required>
                     <datalist id="office-list">
-                        <option value="OD Lima">
-                        <option value="OD Lima Este">
-                        <option value="OD Lima Norte">
-                        <option value="OD Lima Sur">
-                        <option value="Despacho del Defensor del Pueblo">
-                        <option value="Primera AdjuntÃ­a">
-                        <option value="AdjuntÃ­a de Lucha contra la CorrupciÃ³n, Transparencia y Eficiencia del Estado">
-                        <option value="AdjuntÃ­a del Medio Ambiente, Servicios PÃºblicos y Pueblos IndÃ­genas">
-                        <option value="AdjuntÃ­a del Medio Ambiente, Cambio ClimÃ¡tico y Pueblos IndÃ­genas">
-                        <option value="AdjuntÃ­a en Asuntos Constitucionales">
-                        <option value="AdjuntÃ­a para el Derecho a la EducaciÃ³n">
-                        <option value="AdjuntÃ­a para el Derecho a la Salud">
-                        <option value="AdjuntÃ­a para la AdministraciÃ³n Estatal">
-                        <option value="AdjuntÃ­a para la DescentralizaciÃ³n y Desarrollo SocioeconÃ³mico">
-                        <option value="AdjuntÃ­a para la NiÃ±ez y Adolescencia">
-                        <option value="AdjuntÃ­a para la PrevenciÃ³n de Conflictos Sociales y la Gobernabilidad">
-                        <option
-                            value="AdjuntÃ­a para la Seguridad Ciudadana, Seguridad Nacional y la Lucha contra las Drogas">
-                        <option value="AdjuntÃ­a para los Derechos de la Mujer">
-                        <option value="AdjuntÃ­a para los Derechos Humanos y Personas con Discapacidad">
-                        <option value="Centro de Estudios Defensoriales">
-                        <option value="Centro de InformaciÃ³n">
-                        <option value="DirecciÃ³n de AtenciÃ³n al Pueblo">
-                        <option value="DirecciÃ³n de AtenciÃ³n Virtual a la CiudadanÃ­a">
-                        <option value="DirecciÃ³n de CoordinaciÃ³n Territorial">
-                        <option value="DirecciÃ³n del Mecanismo Nacional de PrevenciÃ³n de la Tortura">
-                        <option value="DirecciÃ³n de Litigio EstratÃ©gico">
-                        <option value="Gabinete">
-                        <option value="Oficina General de AdministraciÃ³n y Finanzas">
-                        <option value="Ãrea de Contabilidad">
-                        <option value="Oficina de Contabilidad">
-                        <option value="Ãrea de Infraestructura y Seguridad Integral">
-                        <option value="Oficina de Infraestructura y Seguridad Integral">
-                        <option value="Ãrea de LogÃ­stica">
-                        <option value="Ãrea de TesorerÃ­a">
-                        <option value="Oficina de TesorerÃ­a">
-                        <option value="Control Previo">
-                        <option value="Control Patrimonial">
-                        <option value="Oficina de Control Patrimonial">
-                        <option value="Oficina de AdministraciÃ³n y Finanzas">
-                        <option value="Oficina de AsesorÃ­a JurÃ­dica">
-                        <option value="Oficina General de AsesorÃ­a JurÃ­dica">
-                        <option value="Oficina de Asuntos Contractuales y Sistemas Administrativos">
-                        <option
-                            value="Oficina de Asuntos Laborales, SimplificaciÃ³n Administrativa y CooperaciÃ³n Internacional">
-                        <option value="Oficina de Comunicaciones e Imagen Institucional">
-                        <option value="Oficina General de Comunicaciones e Imagen Institucional">
-                        <option value="Oficina de Control Institucional">
-                        <option value="Oficina de GestiÃ³n y Desarrollo Humano">
-                        <option value="Oficina General de GestiÃ³n y Desarrollo Humano">
-                        <option value="Oficina de Remuneraciones y Beneficios">
-                        <option value="Oficina de Desarrollo y Bienestar Social">
-                        <option value="Oficina de Desarrollo EstratÃ©gico y CooperaciÃ³n Internacional">
-                        <option value="Oficina de CooperaciÃ³n Internacional">
-                        <option value="Oficina de Planeamiento y Presupuesto">
-                        <option value="Oficina General de Planeamiento y Presupuesto">
-                        <option value="Oficina de Planeamiento">
-                        <option value="Oficina de Presupuesto">
-                        <option value="Oficina de ModernizaciÃ³n">
-                        <option value="Oficina de EstadÃ­stica">
-                        <option value="Oficina General de TecnologÃ­as, InnovaciÃ³n y TransformaciÃ³n Digital">
-                        <option value="Oficina de IngenierÃ­a de Software">
-                        <option value="Oficina de Infraestructura TecnolÃ³gica">
-                        <option value="Oficina de Soporte TÃ©cnico">
-                        <option
-                            value="Programa de Defensa y PromociÃ³n de los Derechos de las Personas con Discapacidad">
-                        <option value="Programa de Investigaciones Especiales en Derechos Humanos">
-                        <option value="Programa de Pueblos IndÃ­genas">
-                        <option value="Programa para la SupervisiÃ³n de Contrataciones e Inversiones PÃºblicas">
-                        <option value="Programa para las Personas Privadas de la Libertad">
-                        <option value="Programa para los Derechos de las Personas Migrantes">
-                        <option value="Programa para los Derechos de las Personas en Movilidad Humana">
-                        <option value="Programa Rompiendo Cadenas">
-                        <option value="Programa de Litigio EstratÃ©gico">
-                        <option value="SecretarÃ­a General">
-                        <option value="SG - GestiÃ³n Documentaria y Archivo">
-                        <option value="Oficina de GestiÃ³n Documentaria y Archivo">
-                        <option value="Oficina de Integridad Institucional">
-                        <option value="SecretarÃ­a TÃ©cnica Especializada">
+                        <option value="Adjuntía para la Prevención de Conflictos Sociales"><option value="Adjuntía para los Derechos Humanos"><option value="Adjuntía para los Derechos de la Mujer">
+                        <option value="Despacho del Defensor del Pueblo"><option value="Oficina de Comunicaciones">
                     </datalist>
                 </div>
                 <div class="form-group">
@@ -270,188 +95,133 @@
                 </div>
                 <div class="form-group">
                     <label for="protest-name">Nombre de la Protesta</label>
-                    <input type="text" id="protest-name" list="protest-list-plan"
-                        placeholder="Nombre del colectivo o marcha" required>
-                    <datalist id="protest-list-plan" class="protest-list-dynamic"></datalist>
+                    <input type="text" id="protest-name" list="protest-list-plan" placeholder="Nombre del colectivo o marcha" required>
+                    <datalist id="protest-list-plan"></datalist>
                 </div>
                 <div class="form-group">
-                    <label for="categor📷>CategorÃ­a de SupervisiÃ³n</label>
-                    <select id="categor📷 required>
-                        <option value="" disabled selected>Selecciona categorÃ­a...</option>
-                        <option value="Espacio de movilizaciÃ³n">Espacio de movilizaciÃ³n</option>
-                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del
-                            Estado</option>
+                    <label for="category">Categoría de Supervisión</label>
+                    <select id="category" required>
+                        <option value="" disabled selected>Selecciona categoría...</option>
+                        <option value="Espacio de movilización">Espacio de movilización</option>
+                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del Estado</option>
                         <option value="Establecimiento de salud">Establecimiento de salud</option>
                         <option value="Videovigilancia">Videovigilancia</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="location">Punto de SupervisiÃ³n</label>
-                    <input type="text" id="location" list="location-list" placeholder="Escribe o selecciona..."
-                        required>
-                    <datalist id="location-list">
-                        <!-- Se puebla dinÃ¡micamente desde app.js -->
-                    </datalist>
+                    <label for="location">Punto de Supervisión</label>
+                    <input type="text" id="location" list="location-list" placeholder="Escribe o selecciona..." required>
+                    <datalist id="location-list"></datalist>
                 </div>
                 <div class="form-group">
-                    <label for="date">Fecha de la SupervisiÃ³n</label>
+                    <label for="date">Fecha de la Supervisión</label>
                     <input type="date" id="date" readonly required>
                 </div>
-                <div class="form-group full-width">
-                    <label>Foto o Video (Opcional)</label>
-                    <div class="dropzone" id="dropzone-sede">
-                        <input type="file" id="media" accept="image/*,video/*">
-                        <div class="dropzone-content" id="dropzone-content-sede">
-                            <div class="dropzone-icon">ðŸ“·</div>
-                            <div class="dropzone-text">Arrastra tu archivo aquÃ­ o haz clic para seleccionar</div>
-                        </div>
-                        <img src="" alt="Preview" class="dropzone-preview" id="preview-sede">
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label for="observations">Observaciones / Comentarios</label>
-                    <textarea id="observations" rows="3"
-                        placeholder="Detalles adicionales, incidencias, etc."></textarea>
-                </div>
-                <div class="form-group full-width">
-                    <p class="geo-hint" style="color: #666; font-size: 0.9em; margin-bottom: 10px;">ðŸ“ La ubicaciÃ³n se
-                        registrarÃ¡ automÃ¡ticamente al iniciar.</p>
-                </div>
-                <button type="submit" class="btn-primary📷>Iniciar SupervisiÃ³n</button>
+                <button type="submit" class="btn-primary">Iniciar Supervisión</button>
             </form>
         </section>
 
-        <!-- SesiÃ³n Activa -->
+        <!-- Sesión Activa -->
         <section id="active-section" class="card hidden">
             <div class="active-header">
                 <span class="status-dot"></span>
-                <h3>SupervisiÃ³n en Curso</h3>
+                <h3>Supervisión en Curso</h3>
             </div>
-            <div id="active-info">`n                <p><strong>Comisionado:</strong> <span id="display-name"></span></p>`n                <p><strong>Oficina:</strong> <span id="display-office"></span></p>
+            <div id="active-info">
+                <p><strong>Comisionado:</strong> <span id="display-name"></span></p>
+                <p><strong>Oficina:</strong> <span id="display-office"></span></p>
                 <p><strong>Punto:</strong> <span id="display-location"></span></p>
                 <p><strong>Inicio:</strong> <span id="display-start"></span></p>
-                <p><strong>GPS Inicio:</strong> <span id="display-start-geo">Pendiente...</span></p>
-                <div id="mini-map" style="height: 200px; width: 100%; border-radius: 8px; margin-top: 10px; z-index: 1;"></div>
+                <p><strong>GPS Inicio:</strong> <span id="display-start-geo">Obteniendo...</span></p>
             </div>
             <div class="timer" id="timer">00:00:00</div>
 
-            <!-- Incidencias -->
-            <div class="incident-actions" style="margin: 20px 0; display: flex; gap: 10px; justify-content: center;">
-                <button id="add-incident-btn" class="btn-primary📷
-                    style="background-color: #f39c12; border-color: #e67e22; flex: 1; padding: 10px;">
-                    ðŸš© Registrar Incidencia
+            <div class="incident-actions">
+                <button id="add-incident-btn" class="btn-primary" style="background-color: #f39c12; margin-bottom:10px;">
+                    🚨 Registrar Incidencia
                 </button>
-                <button id="add-update-btn" class="btn-primary📷
-                    style="background-color: #3498db; border-color: #2980b9; flex: 1; padding: 10px;">
-                    ðŸ”„ Enviar ActualizaciÃ³n
+                <button id="add-update-btn" class="btn-primary" style="background-color: #3498db;">
+                    📝 Enviar Actualización
                 </button>
             </div>
-            <div id="incidents-timeline" class="timeline-container">
-                <!-- Se llena dinÃ¡micamente -->
-            </div>
-            <div class="form-group">
-                <p class="geo-hint" style="color: #666; font-size: 0.9em; margin-bottom: 10px; text-align: center;">ðŸ“
-                    Al finalizar se registrarÃ¡ tu ubicaciÃ³n final.</p>
-            </div>
-            <button id="finish-btn" class="btn-danger">Finalizar SupervisiÃ³n</button>
+            <div id="incidents-timeline" class="timeline-container"></div>
+            <button id="finish-btn" class="btn-primary" style="background-color: #e74c3c; margin-top:20px;">Finalizar Supervisión</button>
         </section>
 
-        <!-- Historial -->
+        <!-- Historial Local -->
         <section id="history-section" class="card">
-            <div class="history-header">
+            <div class="section-header">
                 <h2>Historial de Registros</h2>
-                <button id="export-btn" class="btn-secondar📷>Exportar</button>
+                <button id="export-btn" class="btn-secondary">Exportar</button>
             </div>
-            <div id="history-list" class="history-list">
-                <!-- Se llenarÃ¡ dinÃ¡micamente -->
-                <p class="empty-msg">No hay registros previos.</p>
-            </div>
+            <div id="history-list"></div>
         </section>
     </main>
 
-    <!-- Modal DinÃ¡mico (Incidencias y Actualizaciones) -->
+    <!-- Modal Incidencia -->
     <div id="incident-modal" class="modal hidden-modal">
         <div class="modal-content">
             <h3 id="modal-title">Nueva Incidencia</h3>
             <div class="form-group" id="incident-class-group">
-                <label for="incident-class">ClasificaciÃ³n</label>
+                <label>Clasificación</label>
                 <select id="incident-class">
-                    <option value="" disabled selected>Selecciona tipo...</option>
                     <option value="Heridos">Heridos</option>
                     <option value="Fallecidos">Fallecidos</option>
                     <option value="Privados de la libertad">Privados de la libertad</option>
-                    <option value="Enfrentamientos (PNP y ciudadanÃ­a / grupos ciudadanos contrarios)">Enfrentamientos (PNP y ciudadanÃ­a / grupos ciudadanos contrarios)</option>
+                    <option value="Enfrentamientos">Enfrentamientos</option>
                     <option value="Uso desmedido de la fuerza">Uso desmedido de la fuerza</option>
+                    <option value="Reporte de Situación">Reporte de Situación</option>
                 </select>
             </div>
-            <div class="form-group hidden" id="incident-qty-group">
-                <label for="incident-qt📷>Cantidad de personas</label>
-                <input type="number" id="incident-qt📷 min="1" placeholder="Ej. 3">
+            <div class="form-group">
+                <label>Hora</label>
+                <input type="time" id="incident-time">
             </div>
             <div class="form-group">
-                <label for="incident-time">Hora del evento</label>
-                <input type="time" id="incident-time" readonly>
+                <label>Cantidad (si aplica)</label>
+                <input type="number" id="incident-qty" placeholder="0">
             </div>
             <div class="form-group">
-                <textarea id="incident-desc" placeholder="Describe lo que estÃ¡ pasando..." rows="4"
-                    style="width: 100%; padding: 10px;"></textarea>
+                <label>Descripción</label>
+                <textarea id="incident-desc" rows="3" placeholder="¿Qué está pasando?"></textarea>
             </div>
             <div class="form-group">
-                <div class="dropzone" id="dropzone-incident" style="padding: 1rem;">
-                    <input type="file" id="incident-photo" accept="image/*" capture="environment">
-                    <div class="dropzone-content" id="dropzone-content-incident">
-                        <div class="dropzone-icon" style="font-size: 1.5rem;">ðŸ“·</div>
-                        <div class="dropzone-text" style="font-size: 0.8rem;">Adjuntar foto</div>
-                    </div>
-                    <img src="" alt="Preview" class="dropzone-preview" id="preview-incident">
-                </div>
-                <div id="incident-photo-name" style="text-align: center; font-size: 0.8rem; color: #666; margin-top: 5px;">Sin archivo
-                </div>
+                <label>Foto (Opcional)</label>
+                <input type="file" id="incident-photo" accept="image/*">
             </div>
-            <!-- Controles de Audio -->
-            <div class="form-group audio-controls" style="text-align: center; background: #f1f5f9; padding: 10px; border-radius: 8px;">
-                <button id="record-audio-btn" class="btn-secondar📷 style="background-color: #e74c3c; width: 100%; margin-bottom: 5px;">ðŸŽ¤ Grabar Nota de Voz</button>
-                <button id="stop-audio-btn" class="btn-secondary hidden" style="background-color: #34495e; width: 100%; margin-bottom: 5px;">â¹ï¸ Detener GrabaciÃ³n</button>
-                <div id="audio-timer" class="hidden" style="font-weight: bold; color: #e74c3c;">00:00</div>
-                <audio id="audio-preview" controls class="hidden" style="width: 100%; margin-top: 5px;"></audio>
-                <button id="discard-audio-btn" class="btn-secondary hidden" style="background-color: #95a5a6; width: 100%; margin-top: 5px; font-size: 0.8rem;">ðŸ—‘ï¸ Descartar Audio</button>
+            <div class="audio-section">
+                <button id="record-audio-btn" class="btn-secondary">🎤 Grabar Audio</button>
+                <button id="stop-audio-btn" class="btn-secondary hidden">🛑 Detener</button>
+                <audio id="audio-preview" controls class="hidden"></audio>
             </div>
-            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: space-between;">
-                <button id="cancel-incident-btn" class="btn-secondar📷
-                    style="background-color: #95a5a6;">Cancelar</button>
-                <button id="save-incident-btn" class="btn-primary📷>Guardar</button>
+            <div class="modal-buttons">
+                <button id="cancel-incident-btn" class="btn-secondary">Cancelar</button>
+                <button id="save-incident-btn" class="btn-primary">Guardar</button>
             </div>
-        </div>
         </div>
     </div>
 
-    <!-- Modal Alerta WhatsApp -->
+    <!-- Modal WhatsApp -->
     <div id="wa-modal" class="modal hidden-modal">
         <div class="modal-content">
-            <h3>Enviar Alerta Urgente ðŸ“²</h3>
-            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Selecciona a quiÃ©n enviar el reporte.</p>
+            <h3>Enviar Alerta WhatsApp</h3>
             <div class="form-group">
-                <label for="wa-contact-select">Contacto</label>
-                <select id="wa-contact-select">
-                    <option value="" disabled selected>Cargando contactos...</option>
-                </select>
+                <label>Selecciona Contacto</label>
+                <select id="wa-contact-select"></select>
             </div>
-            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: space-between; margin-top: 20px;">
-                <button id="wa-cancel-btn" class="btn-secondar📷 style="background-color: #95a5a6;">Omitir</button>
-                <button id="wa-send-btn" class="btn-primary📷 style="background-color: #25D366; border-color: #128C7E;">Abrir WhatsApp</button>
+            <div class="modal-buttons">
+                <button id="wa-cancel-btn" class="btn-secondary">Omitir</button>
+                <button id="wa-send-btn" class="btn-primary">Enviar</button>
             </div>
         </div>
     </div>
-    <!-- Modal Visor de Imagen Completa -->
-    <div id="image-modal" class="modal hidden-modal" style="z-index: 2000; background: rgba(0,0,0,0.9);">
-        <span id="close-image-modal" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
-        <img class="modal-content" id="full-image" style="max-width: 90%; max-height: 90vh; border-radius: 0; background: transparent; padding: 0;">
-    </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="app.js"></script>
-    <div style="text-align: center; font-size: 0.8rem; color: #666; padding: 10px;">
-        v3.0 - HÃ­brido Firebase
-    </div>
 </body>
 
 </html>
