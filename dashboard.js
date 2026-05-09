@@ -165,27 +165,27 @@ function updateStatsAndMap(sessions) {
 }
 
 function updateMarker(id, s, lat, lng) {
-    let hasAlert = false;
-    if (s.incidents) {
-        const lastInc = Object.values(s.incidents).sort((a,b) => b.timestamp - a.timestamp)[0];
-        if (lastInc && ['Heridos', 'Fallecidos', 'Privados de la libertad'].includes(lastInc.clasificacion)) hasAlert = true;
-    }
+    // REGLA ESTRICTA: solo alertaActiva===true activa el pin de emergencia
+    const hasAlert = s.alertaActiva === true;
 
-    const iconColor = s.status === 'finished' ? '#95a5a6' : '#27ae60';
-    const customIcon = hasAlert ? L.divIcon({
-        html: '🚨', className: 'alert-marker', iconSize: [30, 30], iconAnchor: [15, 15]
-    }) : L.divIcon({
-        className: 'custom-icon',
-        html: `<div style="background:${iconColor}; width:15px; height:15px; border-radius:50%; border:3px solid white; box-shadow:0 0 5px rgba(0,0,0,0.3);"></div>`,
-        iconSize: [15, 15], iconAnchor: [7, 7]
-    });
+    const customIcon = hasAlert
+        ? L.divIcon({
+            html: '🚨',
+            className: 'alert-marker',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30]
+        })
+        : new L.Icon.Default(); // ESTADO NORMAL: pin azul estándar de Leaflet
 
     if (markers[id]) {
         markers[id].setLatLng([lat, lng]);
         markers[id].setIcon(customIcon);
     } else {
         markers[id] = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-        markers[id].bindTooltip(s.name + " (" + s.office + ")", { direction: 'top', className: 'waze-tooltip' });
+        markers[id].bindTooltip(s.name + " (" + s.office + ")", {
+            direction: 'top',
+            className: 'waze-tooltip'
+        });
     }
 }
 

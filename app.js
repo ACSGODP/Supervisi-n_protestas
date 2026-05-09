@@ -201,40 +201,37 @@ function syncOtherCommissioners() {
 
 function updateOtherMarker(sid, s) {
     const latlng = [s.currentLat, s.currentLng];
-    
-    // Verificar si hay incidencias críticas para cambiar el icono
-    let hasCritical = false;
-    if (s.incidents) {
-        const lastInc = Object.values(s.incidents).sort((a,b) => b.timestamp - a.timestamp)[0];
-        if (lastInc && ['Heridos', 'Fallecidos', 'Privados de la libertad'].includes(lastInc.clasificacion)) {
-            hasCritical = true;
-        }
-    }
 
-    const icon = hasCritical ? L.divIcon({
-        html: '🚨',
-        className: 'alert-marker',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
-    }) : L.divIcon({
-        html: '🔵',
-        className: 'waze-marker', 
-        iconSize: [25, 25],
-        iconAnchor: [12, 12]
-    });
+    // REGLA ESTRICTA: solo alertaActiva===true activa el pin de emergencia
+    const hasCritical = s.alertaActiva === true;
+
+    let marker;
+    if (hasCritical) {
+        // ESTADO DE EMERGENCIA 🚨
+        marker = L.divIcon({
+            html: '🚨',
+            className: 'alert-marker',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        });
+    } else {
+        // ESTADO NORMAL: pin azul estándar de Leaflet (sin divIcon)
+        marker = new L.Icon.Default();
+    }
 
     if (otherMarkers[sid]) {
         otherMarkers[sid].setLatLng(latlng);
-        otherMarkers[sid].setIcon(icon);
+        otherMarkers[sid].setIcon(marker);
     } else {
-        otherMarkers[sid] = L.marker(latlng, { icon: icon }).addTo(minimap);
-        otherMarkers[sid].bindTooltip(s.name + " (" + s.office + ")", { 
-            permanent: true, 
+        otherMarkers[sid] = L.marker(latlng, { icon: marker }).addTo(minimap);
+        otherMarkers[sid].bindTooltip(s.name + ' (' + s.office + ')', {
+            permanent: true,
             direction: 'top',
             className: 'waze-tooltip'
         });
     }
 }
+
 
 function removeOtherMarker(sid) {
     if (otherMarkers[sid]) {
@@ -485,9 +482,14 @@ saveIncidentBtn?.addEventListener('click', async () => {
         const sRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
         if (sRef) await sRef.push(inc);
 
+        // ETIQUETAR ALERTA EN EL DOCUMENTO DE SESIÓN
+        const isCritical = ['Heridos', 'Fallecidos', 'Privados de la libertad'].includes(inc.clasificacion);
+        const sessionRef = fbRef('sessions/' + activeSession.sessionId);
+        if (sessionRef) await sessionRef.update({ alertaActiva: isCritical ? true : false });
+
         syncWithCloud('incident', activeSession, { incident: inc });
         
-        if (['Heridos', 'Fallecidos', 'Privados de la libertad'].includes(inc.clasificacion)) {
+        if (isCritical) {
             openWaModal(inc);
         }
 
