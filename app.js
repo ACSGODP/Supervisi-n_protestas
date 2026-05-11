@@ -115,13 +115,32 @@ function init() {
 
     renderToolkit();
     
-    // Listener de Categoría para Lima
-    const categorySelect = document.getElementById('category');
-    categorySelect?.addEventListener('change', populateLocationDatalist);
+    // 1. MOTOR DE CASCADA LIMA (Estricto)
+    const selectCatLima = document.getElementById('categoria-lima');
+    const selectPuntoLima = document.getElementById('punto-lima');
+    
+    selectCatLima?.addEventListener('change', async (e) => {
+        const cat = e.target.value;
+        if (!selectPuntoLima) return;
+        
+        // Limpiar
+        selectPuntoLima.innerHTML = '<option value="">Cargando puntos...</option>';
+        
+        // Inyectar Base Lima (Hardcoded)
+        let html = '<option value="">Selecciona punto...</option>';
+        if (puntosPredefinidos[cat]) {
+            puntosPredefinidos[cat].forEach(p => {
+                html += `<option value="${p}">${p}</option>`;
+            });
+        }
+        selectPuntoLima.innerHTML = html;
+        
+        // Inyectar Dinámicos (Firebase)
+        await cargarPuntosFirebase(cat, selectPuntoLima);
+    });
 
-    // Listener de Categoría para ACP
-    const acpCategorySelect = document.getElementById('acp-category');
-    acpCategorySelect?.addEventListener('change', () => populateLocationDatalist(true));
+    // 2. AUTOCOMPLETE OD/MOD (Historial)
+    cargarSugerenciasOD();
 
     initFirebaseCatalogos();
     
@@ -159,50 +178,68 @@ function initFirebaseCatalogos() {
     fetchGoogleConfig();
 }
 
-async function populateLocationDatalist(isAcp = false) {
-    const catSelectId = isAcp ? 'acp-category' : 'category';
-    const listId = isAcp ? 'location-list-acp' : 'location-list';
-    const inputId = isAcp ? 'acp-location' : 'location';
-    
-    const catSelect = document.getElementById(catSelectId);
-    const datalist = document.getElementById(listId);
-    const input = document.getElementById(inputId);
-    
-    if (!catSelect || !datalist) return;
-    
-    const cat = catSelect.value;
-    if (input) input.value = ""; // OBLIGATORIO: Vaciar el campo al cambiar categoría
-    
-    // a) Vaciar el <datalist> (equivalente al select de puntos)
-    datalist.innerHTML = "";
-    
-    // b) Insertar valores del array hardcodeado (Base Lima)
-    const localPoints = puntosPredefinidos[cat] || [];
-    localPoints.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p;
-        datalist.appendChild(opt);
-    });
-    
-    // c) Consulta a Firebase para puntos añadidos por el administrador
+async function cargarPuntosFirebase(categoria, container) {
     try {
-        // Consultamos el nodo específico de la categoría
-        const snap = await fbRef('configuracion/catalogos/puntos/' + cat).once('value');
+        const snap = await fbRef('configuracion/catalogos/puntos/' + categoria).once('value');
         const remotePoints = snap.val();
-        
         if (remotePoints && Array.isArray(remotePoints)) {
             remotePoints.forEach(p => {
-                // Evitamos duplicados si el administrador agregó algo que ya estaba en el código
-                if (!localPoints.includes(p)) {
+                // Evitar duplicados con la lista base
+                const isPredefined = puntosPredefinidos[categoria] && puntosPredefinidos[categoria].includes(p);
+                if (!isPredefined) {
                     const opt = document.createElement('option');
                     opt.value = p;
-                    datalist.appendChild(opt);
+                    opt.textContent = p;
+                    container.appendChild(opt);
                 }
             });
         }
     } catch (e) {
-        console.error("Error al consultar puntos dinámicos en Firebase:", e);
+        console.error("Error al cargar puntos desde Firebase:", e);
     }
+}
+
+async function cargarSugerenciasOD() {
+    const list = document.getElementById('sugerencias-od');
+    if (!list) return;
+    try {
+        const snap = await fbRef('configuracion/historial_puntos_od').once('value');
+        const data = snap.val();
+        if (data) {
+            const puntos = Object.values(data);
+            const unique = [...new Set(puntos)];
+            list.innerHTML = unique.map(p => `<option value="${p}">`).join('');
+        }
+    } catch (e) { console.error("Error sugerencias OD:", e); }
+}
+
+async function guardarPuntoOD(punto) {
+    if (!punto) return;
+    try {
+        const ref = fbRef('configuracion/historial_puntos_od');
+        if (ref) await ref.push(punto);
+    } catch (e) { console.error("Error guardando punto OD:", e); }
+}
+
+async function populateLocationDatalist(isAcp = false) {
+    if (isAcp) return; // OD/MOD no usa cascada
+    
+    const catSelect = document.getElementById('categoria-lima');
+    const pointSelect = document.getElementById('punto-lima');
+    
+    if (!catSelect || !pointSelect) return;
+    
+    const cat = catSelect.value;
+    if (!cat) return;
+
+    let html = '<option value="">Selecciona punto...</option>';
+    if (puntosPredefinidos[cat]) {
+        puntosPredefinidos[cat].forEach(p => {
+            html += `<option value="${p}">${p}</option>`;
+        });
+    }
+    pointSelect.innerHTML = html;
+    await cargarPuntosFirebase(cat, pointSelect);
 }
 
 async function fetchGoogleConfig() {
@@ -413,10 +450,13 @@ acpForm?.addEventListener('submit', async e => {
         name: document.getElementById('acp-supervisor').value,
         office: document.getElementById('acp-office').value,
         category: document.getElementById('acp-category').value,
-        location: document.getElementById('acp-location').value,
+        location: document.getElementById('punto-od').value,
         startTime: Date.now(),
         initialPhoto: photoUrl
     });
+    
+    // PERSISTENCIA INTELIGENTE PROVINCIAS
+    guardarPuntoOD(document.getElementById('punto-od').value);
 });
 
 const startForm = document.getElementById('start-form');
@@ -438,10 +478,11 @@ startForm?.addEventListener('submit', async e => {
         type: 'Sede',
         fecha: document.getElementById('date').value,
         turno: document.getElementById('turno').value,
-        office: document.getElementById('office').value,
+        office: document.getElementById('oficina-lima').value,
         name: document.getElementById('name').value,
         protestName: document.getElementById('protest-name').value,
-        location: document.getElementById('location').value,
+        category: document.getElementById('categoria-lima').value,
+        location: document.getElementById('punto-lima').value,
         startTime: Date.now(),
         initialPhoto: photoUrl
     });
