@@ -11,6 +11,14 @@ let minimap = null;
 let minimapMarker = null;
 let otherMarkers = {}; // Almacena marcadores de otros comisionados { sessionId: marker }
 
+// 1. DATA ESTRÍCTAMENTE HARDCODEADA (Original Lima)
+const puntosPredefinidos = { 
+  "Espacio de movilización": ["Congreso", "Fiscalía", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi", "Av. De la Peruanidad", "ONPE", "JNE", "Campo de Marte"], 
+  "Dependencia policial / Seguridad del Estado": ["Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres", "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza"], 
+  "Establecimiento de salud": ["Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara", "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo", "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz"], 
+  "Videovigilancia": ["Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP"] 
+};
+
 // Firebase Safety
 const _fbDb = (typeof _db !== "undefined") ? _db : null;
 const _fbStorage = (typeof _storage !== "undefined") ? _storage : null;
@@ -124,13 +132,6 @@ function init() {
 }
 
 // === GESTIÓN DE CATÁLOGOS DINÁMICOS (LIMA) ===
-const puntosPredefinidos = {
-  "Espacio de movilización": ["Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi", "Av. De la Peruanidad", "ONPE", "JNE", "Campo de Marte"],
-  "Dependencia policial / Seguridad del Estado": ["Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres", "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza"],
-  "Establecimiento de salud": ["Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara", "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo", "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz"],
-  "Videovigilancia": ["Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP"]
-};
-
 let catalogosCache = { protestas: [], puntos: {} };
 
 function initFirebaseCatalogos() {
@@ -158,7 +159,7 @@ function initFirebaseCatalogos() {
     fetchGoogleConfig();
 }
 
-function populateLocationDatalist(isAcp = false) {
+async function populateLocationDatalist(isAcp = false) {
     const catSelectId = isAcp ? 'acp-category' : 'category';
     const listId = isAcp ? 'location-list-acp' : 'location-list';
     const inputId = isAcp ? 'acp-location' : 'location';
@@ -172,14 +173,36 @@ function populateLocationDatalist(isAcp = false) {
     const cat = catSelect.value;
     if (input) input.value = ""; // OBLIGATORIO: Vaciar el campo al cambiar categoría
     
-    // FUSIÓN DE CATÁLOGOS: Original (Lima) + Dinámico (Firebase)
+    // a) Vaciar el <datalist> (equivalente al select de puntos)
+    datalist.innerHTML = "";
+    
+    // b) Insertar valores del array hardcodeado (Base Lima)
     const localPoints = puntosPredefinidos[cat] || [];
-    const remotePoints = (catalogosCache.puntos && catalogosCache.puntos[cat]) ? catalogosCache.puntos[cat] : [];
+    localPoints.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        datalist.appendChild(opt);
+    });
     
-    // Combinar y eliminar duplicados
-    const mergedPoints = [...new Set([...localPoints, ...remotePoints])];
-    
-    datalist.innerHTML = mergedPoints.map(p => `<option value="${p}">`).join('');
+    // c) Consulta a Firebase para puntos añadidos por el administrador
+    try {
+        // Consultamos el nodo específico de la categoría
+        const snap = await fbRef('configuracion/catalogos/puntos/' + cat).once('value');
+        const remotePoints = snap.val();
+        
+        if (remotePoints && Array.isArray(remotePoints)) {
+            remotePoints.forEach(p => {
+                // Evitamos duplicados si el administrador agregó algo que ya estaba en el código
+                if (!localPoints.includes(p)) {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    datalist.appendChild(opt);
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error al consultar puntos dinámicos en Firebase:", e);
+    }
 }
 
 async function fetchGoogleConfig() {
