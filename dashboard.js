@@ -378,26 +378,11 @@ function descargarCSV() {
 }
 
 // === GESTIÓN DE CATÁLOGOS (ADMIN) ===
-const originalLocationOptions = {
-    'Espacio de movilización': [
-        "Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo",
-        "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"
-    ],
-    'Dependencia policial': [
-        "Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres",
-        "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza",
-        "DIRCOTE", "DIRINCRI", "DINOES", "Comisaría de Petit Thouars"
-    ],
-    'Establecimiento de salud': [
-        "Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara",
-        "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo",
-        "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz",
-        "Hospital de Emergencias Pediátricas"
-    ],
-    'Cámara': [
-        "Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP",
-        "Cámaras videovigilancia Miraflores", "Centro de Control de Tránsito"
-    ]
+const puntosPredefinidos = {
+  "Espacio de movilización": ["Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi", "Av. De la Peruanidad", "ONPE", "JNE", "Campo de Marte"],
+  "Dependencia policial / Seguridad del Estado": ["Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres", "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza"],
+  "Establecimiento de salud": ["Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara", "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo", "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz"],
+  "Videovigilancia": ["Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP"]
 };
 
 let currentCatalogos = { protestas: [], puntos: {} };
@@ -432,10 +417,10 @@ function renderCatalogosLists() {
     // Puntos
     const ptsList = document.getElementById('points-list-admin');
     let ptsHtml = "";
-    const categories = ["Espacio de movilización", "Dependencia policial", "Establecimiento de salud", "Cámara"];
+    const categories = ["Espacio de movilización", "Dependencia policial / Seguridad del Estado", "Establecimiento de salud", "Videovigilancia"];
     
     categories.forEach(cat => {
-        const localItems = originalLocationOptions[cat] || [];
+        const localItems = puntosPredefinidos[cat] || [];
         const remoteItems = currentCatalogos.puntos[cat] || [];
         
         ptsHtml += `<div style="background:#eee; padding:5px 10px; font-weight:700; font-size:0.8rem;">${cat}</div>`;
@@ -490,7 +475,7 @@ function addPointToState() {
     if (!currentCatalogos.puntos[cat]) currentCatalogos.puntos[cat] = [];
     
     // Validar duplicados en local y remoto
-    const isLocal = (originalLocationOptions[cat] || []).includes(name);
+    const isLocal = (puntosPredefinidos[cat] || []).includes(name);
     const isRemote = currentCatalogos.puntos[cat].includes(name);
     
     if (isLocal || isRemote) return alert("Ya existe en esta categoría.");

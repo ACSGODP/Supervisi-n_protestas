@@ -124,26 +124,11 @@ function init() {
 }
 
 // === GESTIÓN DE CATÁLOGOS DINÁMICOS (LIMA) ===
-const originalLocationOptions = {
-    'Espacio de movilización': [
-        "Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo",
-        "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"
-    ],
-    'Dependencia policial': [
-        "Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres",
-        "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza",
-        "DIRCOTE", "DIRINCRI", "DINOES", "Comisaría de Petit Thouars"
-    ],
-    'Establecimiento de salud': [
-        "Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara",
-        "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo",
-        "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz",
-        "Hospital de Emergencias Pediátricas"
-    ],
-    'Cámara': [
-        "Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP",
-        "Cámaras videovigilancia Miraflores", "Centro de Control de Tránsito"
-    ]
+const puntosPredefinidos = {
+  "Espacio de movilización": ["Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi", "Av. De la Peruanidad", "ONPE", "JNE", "Campo de Marte"],
+  "Dependencia policial / Seguridad del Estado": ["Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres", "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza"],
+  "Establecimiento de salud": ["Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara", "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo", "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz"],
+  "Videovigilancia": ["Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP"]
 };
 
 let catalogosCache = { protestas: [], puntos: {} };
@@ -176,16 +161,19 @@ function initFirebaseCatalogos() {
 function populateLocationDatalist(isAcp = false) {
     const catSelectId = isAcp ? 'acp-category' : 'category';
     const listId = isAcp ? 'location-list-acp' : 'location-list';
+    const inputId = isAcp ? 'acp-location' : 'location';
     
     const catSelect = document.getElementById(catSelectId);
     const datalist = document.getElementById(listId);
+    const input = document.getElementById(inputId);
     
     if (!catSelect || !datalist) return;
     
     const cat = catSelect.value;
+    if (input) input.value = ""; // OBLIGATORIO: Vaciar el campo al cambiar categoría
     
     // FUSIÓN DE CATÁLOGOS: Original (Lima) + Dinámico (Firebase)
-    const localPoints = originalLocationOptions[cat] || [];
+    const localPoints = puntosPredefinidos[cat] || [];
     const remotePoints = (catalogosCache.puntos && catalogosCache.puntos[cat]) ? catalogosCache.puntos[cat] : [];
     
     // Combinar y eliminar duplicados
