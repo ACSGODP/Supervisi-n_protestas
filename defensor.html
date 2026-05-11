@@ -8,7 +8,7 @@
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* ===== DASHBOARD BASE ===== */
@@ -156,6 +156,7 @@
                 <button id="timeline-btn" class="btn-header" style="background:#34495e;">⏱️ Línea Tiempo</button>
                 <button id="btn-descargar-csv" class="btn-header" style="background:#8e44ad;">📊 CSV</button>
                 <button id="sync-gsheets-btn" class="btn-header" style="background:#27ae60;">🔄 Sincronizar BI</button>
+                <button id="config-catalogos-btn" class="btn-header" style="background:#34495e;">⚙️ Configurar Catálogos</button>
             </div>
         </div>
     </header>
@@ -204,11 +205,57 @@
         </div>
     </div>
 
+    <!-- MODAL GESTIÓN DE CATÁLOGOS -->
+    <div id="catalogos-modal" class="modal hidden-modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; color:var(--primary);">⚙️ Gestión de Catálogos</h2>
+                <button id="close-catalogos-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+
+            <div class="modal-grid" style="display:grid; grid-template-columns: 1fr; gap:20px;">
+                <!-- Sección Protestas -->
+                <div style="background:#f9f9f9; padding:15px; border-radius:12px; border:1px solid #eee;">
+                    <h3 style="margin-top:0; font-size:1rem;">Nombres de Protestas</h3>
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <input type="text" id="new-protest-name" placeholder="Nueva marcha/protesta..." style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">
+                        <button id="add-protest-btn" class="btn-primary" style="padding:8px 15px; width:auto;">Agregar</button>
+                    </div>
+                    <div id="protest-list-admin" style="max-height:200px; overflow-y:auto; background:white; border-radius:8px; border:1px solid #ddd;">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Sección Puntos de Supervisión -->
+                <div style="background:#f9f9f9; padding:15px; border-radius:12px; border:1px solid #eee;">
+                    <h3 style="margin-top:0; font-size:1rem;">Puntos de Supervisión</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:10px; margin-bottom:15px;">
+                        <select id="new-point-category" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+                            <option value="Espacio de movilización">Espacio de movilización</option>
+                            <option value="Dependencia policial">Dependencia policial</option>
+                            <option value="Establecimiento de salud">Establecimiento de salud</option>
+                            <option value="Cámara">Cámara</option>
+                        </select>
+                        <input type="text" id="new-point-name" placeholder="Nombre del lugar..." style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+                        <button id="add-point-btn" class="btn-primary" style="padding:8px 15px; width:auto;">Agregar</button>
+                    </div>
+                    <div id="points-list-admin" style="max-height:300px; overflow-y:auto; background:white; border-radius:8px; border:1px solid #ddd;">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+                <button id="save-catalogos-btn" class="btn-primary" style="background:var(--success); width:auto; padding:10px 30px;">Guardar Cambios ✅</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="dashboard.js"></script>
+    <script src="firebase-config.js?v=3.0"></script>
+    <script src="dashboard.js?v=3.0"></script>
 </body>
 
 </html>

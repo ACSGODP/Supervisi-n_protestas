@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defensoría del Pueblo - Sistema de Supervisión</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
     <!-- Leaflet -->
@@ -120,14 +120,16 @@
                     <select id="acp-category" required>
                         <option value="" disabled selected>Selecciona...</option>
                         <option value="Espacio de movilización">Espacio de movilización</option>
-                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial</option>
+                        <option value="Dependencia policial">Dependencia policial</option>
                         <option value="Establecimiento de salud">Establecimiento de salud</option>
                         <option value="Cámara">Cámara</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Punto de Supervisión</label>
-                    <input type="text" id="acp-location" placeholder="Escribe el punto exacto..." required>
+                    <input type="text" id="acp-location" list="location-list-acp" placeholder="Escribe el punto exacto..." required>
+                    <datalist id="location-list-acp">
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label>Foto Inicial de Supervisión</label>
@@ -210,12 +212,6 @@
                     <label>Nombre de la Protesta</label>
                     <input type="text" id="protest-name" list="protest-list-plan" placeholder="Colectivo o marcha..." required>
                     <datalist id="protest-list-plan">
-                        <option value="SUTEP">
-                        <option value="CGTP">
-                        <option value="Marcha contra el Gobierno">
-                        <option value="Movilización de Colectivos">
-                        <option value="Paro de Transportistas">
-                        <option value="Otros">
                     </datalist>
                 </div>
                 <div class="form-group">
@@ -223,7 +219,7 @@
                     <select id="category" required>
                         <option value="" disabled selected>Selecciona...</option>
                         <option value="Espacio de movilización">Espacio de movilización</option>
-                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial</option>
+                        <option value="Dependencia policial">Dependencia policial</option>
                         <option value="Establecimiento de salud">Establecimiento de salud</option>
                         <option value="Cámara">Cámara</option>
                     </select>
@@ -232,15 +228,6 @@
                     <label>Punto de Supervisión</label>
                     <input type="text" id="location" list="location-list" placeholder="Punto exacto..." required>
                     <datalist id="location-list">
-                        <option value="Congreso">
-                        <option value="Fiscalía">
-                        <option value="Parque Universitario">
-                        <option value="Plaza San Martín">
-                        <option value="Plaza Dos de Mayo">
-                        <option value="Plaza Manco Cápac">
-                        <option value="Alameda Paseo de los Héroes Navales">
-                        <option value="Óvalo Grau">
-                        <option value="Óvalo Bolognesi">
                     </datalist>
                 </div>
                 <div class="form-group">
@@ -352,8 +339,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="app.js"></script>
+    <script src="firebase-config.js?v=3.0"></script>
+    <script src="app.js?v=3.0"></script>
 </body>
 
 </html>

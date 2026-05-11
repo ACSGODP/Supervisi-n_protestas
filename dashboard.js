@@ -48,6 +48,13 @@ function initDashboard() {
     // Descargar CSV
     document.getElementById('btn-descargar-csv')?.addEventListener('click', descargarCSV);
 
+    // Gestión de Catálogos
+    document.getElementById('config-catalogos-btn')?.addEventListener('click', openCatalogosModal);
+    document.getElementById('close-catalogos-btn')?.addEventListener('click', () => document.getElementById('catalogos-modal').classList.add('hidden-modal'));
+    document.getElementById('add-protest-btn')?.addEventListener('click', addProtestToState);
+    document.getElementById('add-point-btn')?.addEventListener('click', addPointToState);
+    document.getElementById('save-catalogos-btn')?.addEventListener('click', saveCatalogosToFirebase);
+
     // Carga inicial
     listenToSessions(filterDate.value);
 }
@@ -369,6 +376,153 @@ function descargarCSV() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
+
+// === GESTIÓN DE CATÁLOGOS (ADMIN) ===
+const originalLocationOptions = {
+    'Espacio de movilización': [
+        "Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo",
+        "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"
+    ],
+    'Dependencia policial': [
+        "Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres",
+        "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza",
+        "DIRCOTE", "DIRINCRI", "DINOES", "Comisaría de Petit Thouars"
+    ],
+    'Establecimiento de salud': [
+        "Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara",
+        "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo",
+        "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz",
+        "Hospital de Emergencias Pediátricas"
+    ],
+    'Cámara': [
+        "Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP",
+        "Cámaras videovigilancia Miraflores", "Centro de Control de Tránsito"
+    ]
+};
+
+let currentCatalogos = { protestas: [], puntos: {} };
+
+async function openCatalogosModal() {
+    const modal = document.getElementById('catalogos-modal');
+    modal.classList.remove('hidden-modal');
+    
+    // Cargar datos actuales de Firebase
+    const snap = await fbRef('configuracion/catalogos').once('value');
+    const data = snap.val() || { protestas: [], puntos: {} };
+    
+    // Normalizar estructura si está vacía
+    currentCatalogos = {
+        protestas: Array.isArray(data.protestas) ? data.protestas : [],
+        puntos: data.puntos || {}
+    };
+    
+    renderCatalogosLists();
+}
+
+function renderCatalogosLists() {
+    // Protestas
+    const pList = document.getElementById('protest-list-admin');
+    pList.innerHTML = currentCatalogos.protestas.map((p, i) => `
+        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; align-items:center;">
+            <span>${p}</span>
+            <button onclick="removeProtestFromState(${i})" style="background:#e74c3c; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Eliminar</button>
+        </div>
+    `).join('') || '<p style="padding:10px; color:#999; text-align:center;">No hay protestas registradas.</p>';
+
+    // Puntos
+    const ptsList = document.getElementById('points-list-admin');
+    let ptsHtml = "";
+    const categories = ["Espacio de movilización", "Dependencia policial", "Establecimiento de salud", "Cámara"];
+    
+    categories.forEach(cat => {
+        const localItems = originalLocationOptions[cat] || [];
+        const remoteItems = currentCatalogos.puntos[cat] || [];
+        
+        ptsHtml += `<div style="background:#eee; padding:5px 10px; font-weight:700; font-size:0.8rem;">${cat}</div>`;
+        
+        // Mostrar puntos base (solo lectura)
+        localItems.forEach(item => {
+            ptsHtml += `
+                <div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid #eee; align-items:center; background:#f9f9f9; color:#666;">
+                    <span style="font-size:0.85rem;">📍 ${item} <small style="color:#999;">(Base Lima)</small></span>
+                </div>
+            `;
+        });
+
+        // Mostrar puntos dinámicos (eliminables)
+        remoteItems.forEach((item, idx) => {
+            ptsHtml += `
+                <div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid #eee; align-items:center; background:white;">
+                    <span style="font-size:0.9rem;">${item}</span>
+                    <button onclick="removePointFromState('${cat}', ${idx})" style="background:#e74c3c; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:0.75rem;">&times;</button>
+                </div>
+            `;
+        });
+        
+        if (localItems.length === 0 && remoteItems.length === 0) {
+            ptsHtml += `<p style="padding:10px; color:#999; font-size:0.8rem;">Sin puntos en esta categoría.</p>`;
+        }
+    });
+    ptsList.innerHTML = ptsHtml;
+}
+
+function addProtestToState() {
+    const input = document.getElementById('new-protest-name');
+    const name = input.value.trim();
+    if (!name) return;
+    if (currentCatalogos.protestas.includes(name)) return alert("Ya existe.");
+    currentCatalogos.protestas.push(name);
+    input.value = "";
+    renderCatalogosLists();
+}
+
+function removeProtestFromState(index) {
+    currentCatalogos.protestas.splice(index, 1);
+    renderCatalogosLists();
+}
+
+function addPointToState() {
+    const cat = document.getElementById('new-point-category').value;
+    const input = document.getElementById('new-point-name');
+    const name = input.value.trim();
+    if (!name) return;
+    
+    if (!currentCatalogos.puntos[cat]) currentCatalogos.puntos[cat] = [];
+    
+    // Validar duplicados en local y remoto
+    const isLocal = (originalLocationOptions[cat] || []).includes(name);
+    const isRemote = currentCatalogos.puntos[cat].includes(name);
+    
+    if (isLocal || isRemote) return alert("Ya existe en esta categoría.");
+    
+    currentCatalogos.puntos[cat].push(name);
+    input.value = "";
+    renderCatalogosLists();
+}
+
+function removePointFromState(cat, index) {
+    currentCatalogos.puntos[cat].splice(index, 1);
+    renderCatalogosLists();
+}
+
+async function saveCatalogosToFirebase() {
+    const btn = document.getElementById('save-catalogos-btn');
+    btn.disabled = true; btn.textContent = "Guardando... ⏳";
+    
+    try {
+        await fbRef('configuracion/catalogos').set(currentCatalogos);
+        alert("Catálogos actualizados correctamente ✅");
+        document.getElementById('catalogos-modal').classList.add('hidden-modal');
+    } catch (e) {
+        alert("Error al guardar: " + e.message);
+    } finally {
+        btn.disabled = false; btn.textContent = "Guardar Cambios ✅";
+    }
+}
+
+// Exponer funciones globales para los botones de eliminar (onclick)
+window.removeProtestFromState = removeProtestFromState;
+window.removePointFromState = removePointFromState;
 
 initDashboard();
 

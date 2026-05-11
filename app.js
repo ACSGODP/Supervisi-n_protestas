@@ -107,27 +107,15 @@ function init() {
 
     renderToolkit();
     
-    // Datalists dinámicos
+    // Listener de Categoría para Lima
     const categorySelect = document.getElementById('category');
-    const locationDatalist = document.getElementById('location-list');
-    const locationOptions = {
-        'Espacio de movilización': ["Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"],
-        'Establecimiento de salud': ["Hospital Arzobispo Loayza", "Hospital Dos de Mayo", "Hospital Almenara", "Hospital Rebagliati", "Hospital de Emergencias Pediátricas"],
-        'Dependencia policial / Seguridad del Estado': ["Comisaría de Cotabambas", "Comisaría de Alfonso Ugarte", "Comisaría de Petit Thouars", "DIRCOTE", "DIRINCRI", "DINOES"],
-        'Cámara': ["Centro de Monitoreo - Lima Central", "Cámara Municipalidad de Lima", "Cámara PNP"]
-    };
+    categorySelect?.addEventListener('change', populateLocationDatalist);
 
-    categorySelect?.addEventListener('change', () => {
-        const cat = categorySelect.value;
-        locationDatalist.innerHTML = "";
-        (locationOptions[cat] || []).forEach(opt => {
-            const node = document.createElement('option');
-            node.value = opt;
-            locationDatalist.appendChild(node);
-        });
-    });
+    // Listener de Categoría para ACP
+    const acpCategorySelect = document.getElementById('acp-category');
+    acpCategorySelect?.addEventListener('change', () => populateLocationDatalist(true));
 
-    fetchDynamicLists();
+    initFirebaseCatalogos();
     
     if (activeSession) showActiveSession();
     else showSection('selection-section');
@@ -135,18 +123,85 @@ function init() {
     renderHistory();
 }
 
-async function fetchDynamicLists() {
+// === GESTIÓN DE CATÁLOGOS DINÁMICOS (LIMA) ===
+const originalLocationOptions = {
+    'Espacio de movilización': [
+        "Congreso", "Fiscalía", "Parque Universitario", "Plaza San Martín", "Plaza Dos de Mayo",
+        "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi"
+    ],
+    'Dependencia policial': [
+        "Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres",
+        "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza",
+        "DIRCOTE", "DIRINCRI", "DINOES", "Comisaría de Petit Thouars"
+    ],
+    'Establecimiento de salud': [
+        "Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara",
+        "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo",
+        "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz",
+        "Hospital de Emergencias Pediátricas"
+    ],
+    'Cámara': [
+        "Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP",
+        "Cámaras videovigilancia Miraflores", "Centro de Control de Tránsito"
+    ]
+};
+
+let catalogosCache = { protestas: [], puntos: {} };
+
+function initFirebaseCatalogos() {
+    const catRef = fbRef('configuracion/catalogos');
+    if (!catRef) return;
+
+    catRef.on('value', snap => {
+        const data = snap.val();
+        if (!data) return;
+
+        catalogosCache = data;
+        
+        // Poblar datalist de protestas
+        const protestList = document.getElementById('protest-list-plan');
+        if (protestList) {
+            protestList.innerHTML = (data.protestas || []).map(p => `<option value="${p}">`).join('');
+        }
+
+        // Actualizar datalists de puntos si hay una categoría seleccionada
+        populateLocationDatalist();
+        populateLocationDatalist(true);
+    });
+
+    // Cargar contactos de Google Sheets (mantenemos esto por ahora si el usuario no pidió quitarlo)
+    fetchGoogleConfig();
+}
+
+function populateLocationDatalist(isAcp = false) {
+    const catSelectId = isAcp ? 'acp-category' : 'category';
+    const listId = isAcp ? 'location-list-acp' : 'location-list';
+    
+    const catSelect = document.getElementById(catSelectId);
+    const datalist = document.getElementById(listId);
+    
+    if (!catSelect || !datalist) return;
+    
+    const cat = catSelect.value;
+    
+    // FUSIÓN DE CATÁLOGOS: Original (Lima) + Dinámico (Firebase)
+    const localPoints = originalLocationOptions[cat] || [];
+    const remotePoints = (catalogosCache.puntos && catalogosCache.puntos[cat]) ? catalogosCache.puntos[cat] : [];
+    
+    // Combinar y eliminar duplicados
+    const mergedPoints = [...new Set([...localPoints, ...remotePoints])];
+    
+    datalist.innerHTML = mergedPoints.map(p => `<option value="${p}">`).join('');
+}
+
+async function fetchGoogleConfig() {
     try {
         const res = await fetch(GOOGLE_SHEETS_URL);
         const json = await res.json();
         if (json.config) {
             waContacts = json.config.contactos || [];
-            const protestList = document.getElementById('protest-list-plan');
-            if (protestList && json.config.protestas) {
-                protestList.innerHTML = json.config.protestas.map(p => '<option value="' + p + '">').join('');
-            }
         }
-    } catch (e) { console.error("Sync error", e); }
+    } catch (e) { console.error("Google sync error", e); }
 }
 
 // --- SESIÓN ACTIVA ---
