@@ -12,11 +12,11 @@ let minimapMarker = null;
 let otherMarkers = {}; // Almacena marcadores de otros comisionados { sessionId: marker }
 
 // 1. DATA ESTRÍCTAMENTE HARDCODEADA (Original Lima)
-const puntosPredefinidos = { 
-  "Espacio de movilización": ["Congreso", "Fiscalía", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi", "Av. De la Peruanidad", "ONPE", "JNE", "Campo de Marte"], 
-  "Dependencia policial / Seguridad del Estado": ["Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres", "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza"], 
-  "Establecimiento de salud": ["Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara", "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo", "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz"], 
-  "Videovigilancia": ["Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP"] 
+const puntosPredefinidos = {
+    "Espacio de movilización": ["Congreso", "Fiscalía", "Plaza San Martín", "Plaza Dos de Mayo", "Plaza Manco Cápac", "Alameda Paseo de los Héroes Navales", "Óvalo Grau", "Óvalo Bolognesi", "Av. De la Peruanidad", "ONPE", "JNE", "Campo de Marte"],
+    "Dependencia policial / Seguridad del Estado": ["Comisaría Alfonso Ugarte", "Comisaría Cotabambas", "Comisaría de Mujeres", "Comisaría PNP San Andrés", "División de Asuntos Sociales", "Comisaría de Piedra Liza"],
+    "Establecimiento de salud": ["Hospital Nacional Arzobispo Loayza", "Emergencias Grau", "Hospital Nacional Guillermo Almenara", "Hospital Edgardo Rebagliati Martins", "Hospital Nacional Dos de Mayo", "Hospital PNP Augusto B. Leguía", "Hospital Nacional PNP Luis N Saenz"],
+    "Videovigilancia": ["Centro de Monitoreo", "Cámaras - Municipalidad", "Cámaras - PNP"]
 };
 
 // Firebase Safety
@@ -51,7 +51,7 @@ function formatAMPM(date) {
     let minutes = date.getMinutes();
     let ampm = hours >= 12 ? 'p.m.' : 'a.m.';
     hours = hours % 12;
-    hours = hours ? hours : 12; 
+    hours = hours ? hours : 12;
     minutes = minutes < 10 ? '0' + minutes : minutes;
     return hours + ':' + minutes + ' ' + ampm;
 }
@@ -80,7 +80,7 @@ function renderToolkit() {
     const modalList = document.getElementById('modal-docs-list');
     if (!list) return;
 
-    const html = documentosGestion.map(doc => 
+    const html = documentosGestion.map(doc =>
         `<a href="${doc.url}" target="_blank" style="text-decoration:none; color:var(--primary); font-size:0.9rem; padding:8px; background:#f0f2f5; border-radius:8px;">📄 ${doc.titulo}</a>`
     ).join('');
 
@@ -114,18 +114,18 @@ function init() {
     });
 
     renderToolkit();
-    
+
     // 1. MOTOR DE CASCADA LIMA (Estricto)
     const selectCatLima = document.getElementById('categoria-lima');
     const selectPuntoLima = document.getElementById('punto-lima');
-    
+
     selectCatLima?.addEventListener('change', async (e) => {
         const cat = e.target.value;
         if (!selectPuntoLima) return;
-        
+
         // Limpiar
         selectPuntoLima.innerHTML = '<option value="">Cargando puntos...</option>';
-        
+
         // Inyectar Base Lima (Hardcoded)
         let html = '<option value="">Selecciona punto...</option>';
         if (puntosPredefinidos[cat]) {
@@ -134,7 +134,7 @@ function init() {
             });
         }
         selectPuntoLima.innerHTML = html;
-        
+
         // Inyectar Dinámicos (Firebase)
         await cargarPuntosFirebase(cat, selectPuntoLima);
     });
@@ -143,10 +143,10 @@ function init() {
     cargarSugerenciasOD();
 
     initFirebaseCatalogos();
-    
+
     if (activeSession) showActiveSession();
     else showSection('selection-section');
-    
+
     renderHistory();
 }
 
@@ -162,7 +162,7 @@ function initFirebaseCatalogos() {
         if (!data) return;
 
         catalogosCache = data;
-        
+
         // Poblar datalist de protestas
         const protestList = document.getElementById('protest-list-plan');
         if (protestList) {
@@ -223,12 +223,12 @@ async function guardarPuntoOD(punto) {
 
 async function populateLocationDatalist(isAcp = false) {
     if (isAcp) return; // OD/MOD no usa cascada
-    
+
     const catSelect = document.getElementById('categoria-lima');
     const pointSelect = document.getElementById('punto-lima');
-    
+
     if (!catSelect || !pointSelect) return;
-    
+
     const cat = catSelect.value;
     if (!cat) return;
 
@@ -268,7 +268,7 @@ function initMinimap() {
     if (minimap) return;
     minimap = L.map('minimapa-comisionado', { zoomControl: false }).setView([-12.0464, -77.0428], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(minimap);
-    
+
     minimapMarker = L.marker([-12.0464, -77.0428]).addTo(minimap);
     minimapMarker.bindTooltip("Tú: " + activeSession.name, {
         permanent: true,
@@ -286,7 +286,7 @@ function syncOtherCommissioners() {
         if (!data) return;
 
         Object.keys(data).forEach(sid => {
-            if (sid === activeSession.sessionId) return; 
+            if (sid === activeSession.sessionId) return;
 
             const s = data[sid];
             // AISLAMIENTO ESTRICTO POR PROTESTA
@@ -345,23 +345,23 @@ function removeOtherMarker(sid) {
 
 function startLocationTracking() {
     if (!navigator.geolocation) return;
-    
+
     const geoOptions = { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 };
 
     locationWatchId = navigator.geolocation.watchPosition(pos => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        
+
         safeSetText('display-start-geo', lat.toFixed(5) + ", " + lng.toFixed(5));
-        
+
         if (minimap) {
             minimap.setView([lat, lng]);
             minimapMarker.setLatLng([lat, lng]);
         }
-        
+
         const sRef = fbRef('sessions/' + activeSession.sessionId);
         if (sRef) sRef.update({ currentLat: lat, currentLng: lng, lastUpdate: Date.now() });
-        
+
     }, err => {
         console.warn("GPS Update Error", err);
         safeSetText('display-start-geo', 'Ubicación aprox. (señal débil)');
@@ -372,9 +372,9 @@ function startTimer(start) {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         const diff = Date.now() - start;
-        const h = Math.floor(diff / 3600000).toString().padStart(2,'0');
-        const m = Math.floor((diff % 3600000)/60000).toString().padStart(2,'0');
-        const s = Math.floor((diff % 60000)/1000).toString().padStart(2,'0');
+        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
         safeSetText('timer', h + ":" + m + ":" + s);
     }, 1000);
 }
@@ -387,7 +387,7 @@ function listenSharedFeed() {
         feedRef.on('value', snap => {
             const data = snap.val();
             // Ordenamos cronológicamente (más antiguo primero) para que al insertar aparezca abajo
-            const list = data ? Object.values(data).sort((a,b) => a.timestamp - b.timestamp) : [];
+            const list = data ? Object.values(data).sort((a, b) => a.timestamp - b.timestamp) : [];
             renderTimeline(list);
         });
     }
@@ -396,11 +396,11 @@ function listenSharedFeed() {
 function renderTimeline(list) {
     const container = document.getElementById('incidents-timeline');
     if (!container) return;
-    
+
     container.innerHTML = list.map(inc => {
         const isMe = inc.author === activeSession.name;
         const timeStr = formatAMPM(new Date(inc.timestamp));
-        
+
         return '<div class="chat-bubble ' + (isMe ? 'chat-mine' : 'chat-others') + '">' +
             '<div class="chat-author">' + inc.author + ' (' + inc.office + ')</div>' +
             '<div style="margin: 5px 0;">' +
@@ -419,7 +419,7 @@ function renderTimeline(list) {
 }
 
 function getIncidentColor(cls) {
-    switch(cls) {
+    switch (cls) {
         case 'Heridos': return '#e67e22';
         case 'Fallecidos': return '#c0392b';
         case 'Privados de la libertad': return '#8e44ad';
@@ -450,11 +450,12 @@ acpForm?.addEventListener('submit', async e => {
         name: document.getElementById('acp-supervisor').value,
         office: document.getElementById('acp-office').value,
         category: document.getElementById('acp-category').value,
+        nombreSupervision: document.getElementById('nombre-supervision-od').value.trim(),
         location: document.getElementById('punto-od').value,
         startTime: Date.now(),
         initialPhoto: photoUrl
     });
-    
+
     // PERSISTENCIA INTELIGENTE PROVINCIAS
     guardarPuntoOD(document.getElementById('punto-od').value);
 });
@@ -490,14 +491,14 @@ startForm?.addEventListener('submit', async e => {
 
 async function startSession(session) {
     try {
-        const pos = await new Promise((res,rej) => {
-            navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:5000});
+        const pos = await new Promise((res, rej) => {
+            navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 });
         });
         session.startLat = pos.coords.latitude;
         session.startLng = pos.coords.longitude;
         session.currentLat = session.startLat;
         session.currentLng = session.startLng;
-    } catch(e) { 
+    } catch (e) {
         console.warn("GPS inicial omitido", e);
         session.startLat = -12.0464;
         session.startLng = -77.0428;
@@ -507,10 +508,10 @@ async function startSession(session) {
 
     activeSession = session;
     localStorage.setItem('dp_active_session', JSON.stringify(session));
-    
+
     const sRef = fbRef('sessions/' + session.sessionId);
     if (sRef) await sRef.set({ ...session, status: 'active', lastUpdate: Date.now() });
-    
+
     const cloudData = {
         fecha: session.fecha,
         tipo_registro: session.type,
@@ -553,7 +554,7 @@ saveIncidentBtn?.addEventListener('click', async () => {
     const rawDesc = document.getElementById('incident-desc').value;
     const qty = document.getElementById('incidencia-cantidad').value;
     const category = document.getElementById('incident-class').value;
-    
+
     if (!rawDesc) return alert("Describe el suceso.");
 
     saveIncidentBtn.disabled = true;
@@ -586,7 +587,7 @@ saveIncidentBtn?.addEventListener('click', async () => {
         const slug = slugify(activeSession.protestName || activeSession.location);
         const feedRef = fbRef('shared_feeds/' + slug + '/incidents');
         if (feedRef) await feedRef.push(inc);
-        
+
         const sRef = fbRef('sessions/' + activeSession.sessionId + '/incidents');
         if (sRef) await sRef.push(inc);
 
@@ -600,14 +601,14 @@ saveIncidentBtn?.addEventListener('click', async () => {
         }
 
         syncWithCloud('incident', activeSession, { incident: inc });
-        
+
         if (isCritical) {
             openWaModal(inc);
         }
 
         incidentModal.classList.add('hidden-modal');
         resetIncidentForm();
-    } catch(e) { alert("Error: " + e.message); }
+    } catch (e) { alert("Error: " + e.message); }
     finally {
         saveIncidentBtn.disabled = false;
         saveIncidentBtn.textContent = "Enviar ➡️";
@@ -636,7 +637,7 @@ document.getElementById('wa-send-btn')?.addEventListener('click', () => {
     const c = waContacts[document.getElementById('wa-contact-select').value];
     if (!c) return;
     const msg = "*ALERTA*\nTipo: " + currentWaInc.clasificacion + "\nLugar: " + activeSession.location + "\nDetalle: " + currentWaInc.description;
-    window.open("https://wa.me/" + c.numero.toString().replace(/\D/g,'') + "?text=" + encodeURIComponent(msg), '_blank');
+    window.open("https://wa.me/" + c.numero.toString().replace(/\D/g, '') + "?text=" + encodeURIComponent(msg), '_blank');
     waModal.classList.add('hidden-modal');
 });
 
@@ -665,16 +666,16 @@ document.getElementById('stop-audio-btn')?.addEventListener('click', () => {
 // --- FINALIZAR ---
 document.getElementById('finish-btn')?.addEventListener('click', async () => {
     if (!confirm("¿Deseas finalizar la supervisión?")) return;
-    
+
     activeSession.endTime = Date.now();
     activeSession.status = 'finished';
     history.unshift(activeSession);
-    localStorage.setItem('dp_history', JSON.stringify(history.slice(0,20)));
+    localStorage.setItem('dp_history', JSON.stringify(history.slice(0, 20)));
     localStorage.removeItem('dp_active_session');
 
     const sRef = fbRef('sessions/' + activeSession.sessionId);
     if (sRef) await sRef.update({ status: 'finished', endTime: activeSession.endTime });
-    
+
     syncWithCloud('finish', activeSession);
     location.reload();
 });
@@ -688,7 +689,7 @@ async function syncWithCloud(action, session, extra = {}) {
             mode: 'no-cors',
             body: JSON.stringify({ action, session, ...extra })
         });
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
 }
 
 function renderHistory() {

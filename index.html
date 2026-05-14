@@ -22,7 +22,9 @@
                 <img src="logo.png" alt="Logo" class="header-logo">
                 <span>DEFENSORÍA DEL PUEBLO</span>
             </div>
-            <button id="defensor-link" class="admin-link" style="background: rgba(255,255,255,0.1); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;" onclick="adminLogin()">Admin 🔒</button>
+            <button id="defensor-link" class="admin-link"
+                style="background: rgba(255,255,255,0.1); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;"
+                onclick="adminLogin()">Admin 🔒</button>
         </div>
     </header>
 
@@ -46,8 +48,10 @@
             </button>
 
             <!-- CAJA DE HERRAMIENTAS (Plegable) -->
-            <details class="toolkit-section" style="margin-top:20px; background:white; border-radius:15px; padding:10px; box-shadow:var(--shadow);">
-                <summary style="cursor:pointer; font-weight:700; color:var(--primary); padding:5px;">📚 Documentos de Gestión</summary>
+            <details class="toolkit-section"
+                style="margin-top:20px; background:white; border-radius:15px; padding:10px; box-shadow:var(--shadow);">
+                <summary style="cursor:pointer; font-weight:700; color:var(--primary); padding:5px;">📚 Documentos de
+                    Gestión</summary>
                 <div id="toolkit-list" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
                     <!-- Se llena con app.js -->
                 </div>
@@ -56,7 +60,9 @@
 
         <!-- SECCIÓN 2: FORMULARIOS -->
         <section id="acp-section" class="card hidden">
-            <button class="back-link" style="border:none; background:none; color:var(--primary); font-weight:700; cursor:pointer; margin-bottom:15px;">⬅️ Volver</button>
+            <button class="back-link"
+                style="border:none; background:none; color:var(--primary); font-weight:700; cursor:pointer; margin-bottom:15px;">⬅️
+                Volver</button>
             <h2>Supervisión OD/MOD</h2>
             <form id="acp-form">
                 <div class="form-group">
@@ -116,18 +122,25 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Nombre de Supervisión</label>
+                    <input type="text" id="nombre-supervision-od" placeholder="Escribe el nombre de la supervisión..."
+                        required>
+                </div>
+                <div class="form-group">
                     <label>Categoría de Supervisión</label>
                     <select id="acp-category" required>
                         <option value="" disabled selected>Selecciona...</option>
                         <option value="Espacio de movilización">Espacio de movilización</option>
-                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del Estado</option>
+                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del
+                            Estado</option>
                         <option value="Establecimiento de salud">Establecimiento de salud</option>
                         <option value="Videovigilancia">Videovigilancia</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Punto de Supervisión (Texto Libre)</label>
-                    <input type="text" id="punto-od" list="sugerencias-od" placeholder="Escribe el lugar exacto..." required>
+                    <input type="text" id="punto-od" list="sugerencias-od" placeholder="Escribe el lugar exacto..."
+                        required>
                     <datalist id="sugerencias-od"></datalist>
                 </div>
                 <div class="form-group">
@@ -139,7 +152,9 @@
         </section>
 
         <section id="start-section" class="card hidden">
-            <button class="back-link" style="border:none; background:none; color:var(--primary); font-weight:700; cursor:pointer; margin-bottom:15px;">⬅️ Volver</button>
+            <button class="back-link"
+                style="border:none; background:none; color:var(--primary); font-weight:700; cursor:pointer; margin-bottom:15px;">⬅️
+                Volver</button>
             <h2>Supervisión Lima</h2>
             <form id="start-form">
                 <div class="form-group">
@@ -157,16 +172,17 @@
                 <div class="form-group">
                     <label>Oficina / Adjuntía</label>
                     <select id="oficina-lima" class="form-select" required>
-                      <option value="">Selecciona oficina...</option>
-                      <option value="Adjuntía para la Prevención de Conflictos Sociales y la Gobernabilidad">Adjuntía para la Prevención de Conflictos Sociales</option>
-                      <option value="Adjuntía para los Derechos Humanos">Adjuntía para los Derechos Humanos</option>
-                      <option value="Programa de Casos">Programa de Casos</option>
-                      <option value="Oficina Defensorial de Lima">OD Lima</option>
-                      <option value="Oficina Defensorial de Lima Sur">OD Lima Sur</option>
-                      <option value="Oficina Defensorial de Lima Norte">OD Lima Norte</option>
-                      <option value="Oficina Defensorial de Lima Este">OD Lima Este</option>
-                      <option value="Oficina Defensorial del Callao">OD Callao</option>
-                      <option value="Sede Central - Administración">Sede Central - Administración</option>
+                        <option value="">Selecciona oficina...</option>
+                        <option value="Adjuntía para la Prevención de Conflictos Sociales y la Gobernabilidad">Adjuntía
+                            para la Prevención de Conflictos Sociales</option>
+                        <option value="Adjuntía para los Derechos Humanos">Adjuntía para los Derechos Humanos</option>
+                        <option value="Programa de Casos">Programa de Casos</option>
+                        <option value="Oficina Defensorial de Lima">OD Lima</option>
+                        <option value="Oficina Defensorial de Lima Sur">OD Lima Sur</option>
+                        <option value="Oficina Defensorial de Lima Norte">OD Lima Norte</option>
+                        <option value="Oficina Defensorial de Lima Este">OD Lima Este</option>
+                        <option value="Oficina Defensorial del Callao">OD Callao</option>
+                        <option value="Sede Central - Administración">Sede Central - Administración</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -175,7 +191,8 @@
                 </div>
                 <div class="form-group">
                     <label>Nombre de la Protesta</label>
-                    <input type="text" id="protest-name" list="protest-list-plan" placeholder="Colectivo o marcha..." required>
+                    <input type="text" id="protest-name" list="protest-list-plan" placeholder="Colectivo o marcha..."
+                        required>
                     <datalist id="protest-list-plan">
                     </datalist>
                 </div>
@@ -184,7 +201,8 @@
                     <select id="categoria-lima" required>
                         <option value="" disabled selected>Selecciona...</option>
                         <option value="Espacio de movilización">Espacio de movilización</option>
-                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del Estado</option>
+                        <option value="Dependencia policial / Seguridad del Estado">Dependencia policial / Seguridad del
+                            Estado</option>
                         <option value="Establecimiento de salud">Establecimiento de salud</option>
                         <option value="Videovigilancia">Videovigilancia</option>
                     </select>
@@ -205,35 +223,43 @@
 
         <!-- SECCIÓN 3: SESIÓN ACTIVA -->
         <section id="active-section" class="card hidden" style="padding:0; overflow:hidden;">
-            <div style="background:var(--primary); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <div
+                style="background:var(--primary); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:700;">🔵 EN VIVO</span>
                 <div id="timer" style="font-family:monospace; font-size:1.2rem;">00:00:00</div>
             </div>
-            
+
             <div id="minimapa-comisionado" style="height: 250px; width: 100%;"></div>
-            
+
             <div style="padding:15px;">
-                <p style="font-size:0.9rem; margin-bottom:5px;"><strong>Punto:</strong> <span id="display-location"></span></p>
-                <p style="font-size:0.9rem; color:#666;"><strong>GPS:</strong> <span id="display-start-geo">Obteniendo...</span></p>
+                <p style="font-size:0.9rem; margin-bottom:5px;"><strong>Punto:</strong> <span
+                        id="display-location"></span></p>
+                <p style="font-size:0.9rem; color:#666;"><strong>GPS:</strong> <span
+                        id="display-start-geo">Obteniendo...</span></p>
             </div>
 
             <div style="padding:15px; border-top:1px solid #eee;">
-                <button id="add-incident-btn" class="btn-primary" style="background:#f39c12; margin-bottom:10px;">🚨 Reportar Incidencia</button>
-                <button id="add-update-btn" class="btn-primary" style="background:#3498db; margin-bottom:10px;">📝 Enviar Actualización</button>
-                <button id="view-docs-btn" class="btn-primary" style="background:#2c3e50; font-size:0.9rem;">📄 Ver Lineamientos</button>
+                <button id="add-incident-btn" class="btn-primary" style="background:#f39c12; margin-bottom:10px;">🚨
+                    Reportar Incidencia</button>
+                <button id="add-update-btn" class="btn-primary" style="background:#3498db; margin-bottom:10px;">📝
+                    Enviar Actualización</button>
+                <button id="view-docs-btn" class="btn-primary" style="background:#2c3e50; font-size:0.9rem;">📄 Ver
+                    Lineamientos</button>
             </div>
 
             <div id="incidents-timeline" class="timeline-container" style="height:350px;">
                 <!-- Feed dinámico Estilo WhatsApp -->
             </div>
 
-            <button id="finish-btn" class="btn-primary" style="background:#e74c3c; border-radius:0; margin-top:10px;">Finalizar Supervisión</button>
+            <button id="finish-btn" class="btn-primary"
+                style="background:#e74c3c; border-radius:0; margin-top:10px;">Finalizar Supervisión</button>
         </section>
 
         <section id="history-section" class="card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3>Mis Registros</h3>
-                <button id="export-btn" style="padding:5px 10px; border-radius:5px; border:1px solid #ddd; background:none; cursor:pointer;">CSV</button>
+                <button id="export-btn"
+                    style="padding:5px 10px; border-radius:5px; border:1px solid #ddd; background:none; cursor:pointer;">CSV</button>
             </div>
             <div id="history-list" style="margin-top:15px;"></div>
         </section>
@@ -266,8 +292,10 @@
                 <input type="file" id="incident-photo" accept="image/*" capture="environment">
             </div>
             <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button id="record-audio-btn" class="btn-primary" style="background:#2c3e50; font-size:0.8rem;">🎤 Grabar Voz</button>
-                <button id="stop-audio-btn" class="btn-primary hidden" style="background:#c0392b; font-size:0.8rem;">🛑 Parar</button>
+                <button id="record-audio-btn" class="btn-primary" style="background:#2c3e50; font-size:0.8rem;">🎤
+                    Grabar Voz</button>
+                <button id="stop-audio-btn" class="btn-primary hidden" style="background:#c0392b; font-size:0.8rem;">🛑
+                    Parar</button>
             </div>
             <audio id="audio-preview" controls class="hidden" style="width:100%; margin-bottom:15px;"></audio>
             <div style="display:flex; gap:10px;">
